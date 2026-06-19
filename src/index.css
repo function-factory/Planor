@@ -6,6 +6,58 @@
 /* Mobile: desktop-content-wrap is transparent passthrough */
 .desktop-content-wrap { width: 100%; }
 
+/* ── Tab fade-in transition ─────────────────────── */
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tab-fade-in {
+  animation: tabFadeIn 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── Toss-style divider bars ────────────────────── */
+.toss-divider {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 8px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+.toss-div-main {
+  width: 24px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+.toss-div-sub {
+  width: 9px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  opacity: 0.35;
+}
+
+/* ── Study tab inline settings button ──────────── */
+.study-cfg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background var(--duration), color var(--duration), transform 0.12s;
+  flex-shrink: 0;
+}
+.study-cfg-btn:hover { background: var(--border); color: var(--text-primary); }
+.study-cfg-btn:active { transform: scale(0.96); }
+
 
 :root {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -510,7 +562,10 @@ a { color: var(--accent); text-decoration: none; }
   letter-spacing: 0.6px;
   margin-bottom: 10px;
   padding: 0 2px;
+  display: flex;
+  align-items: center;
 }
+
 
 /* 3D icon cards */
 .icon-card {

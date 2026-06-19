@@ -41,6 +41,16 @@ function useLS(key, def) {
 }
 
 // ── Toast ─────────────────────────────────────────────────
+// ── Toss-style Divider ───────────────────────────────────
+export function TossDivider({ color }) {
+  return (
+    <div className="toss-divider">
+      <div className="toss-div-main" style={color ? { background: color } : {}} />
+      <div className="toss-div-sub" style={color ? { background: color } : {}} />
+    </div>
+  );
+}
+
 export function Toast({ msg }) {
   return <div className={`toast ${msg ? 'show' : ''}`}>{msg}</div>;
 }
@@ -107,7 +117,7 @@ export function HomeTab({ studySessions, workRecords }) {
       <div className="section" style={{ paddingTop: 16 }}>
         <div className="card clock-display" style={{ padding: '28px 20px 20px' }}>
           <div className="clock-time">
-            {timeStr}<span className="clock-sec">{secStr}</span>
+            {timeStr}<span className="clock-sec">:{secStr}</span>
           </div>
           <div className="clock-date">{dateStr}</div>
         </div>
@@ -115,7 +125,7 @@ export function HomeTab({ studySessions, workRecords }) {
 
       {/* Today summary */}
       <div className="section">
-        <div className="section-title">오늘 활동 요약</div>
+        <div className="section-title">오늘 활동 요약 <TossDivider /></div>
         <div className="stat-row">
           <div className="stat-pill">
             <div className="stat-value" style={{ color: 'var(--accent)' }}>{fmtHM(totalStudy)}</div>
@@ -134,7 +144,7 @@ export function HomeTab({ studySessions, workRecords }) {
 
       {/* Color Timeline */}
       <div className="section">
-        <div className="section-title">오늘의 타임라인</div>
+        <div className="section-title">오늘의 타임라인 <TossDivider /></div>
         <div className="card">
           {/* 24-hour proportional bar */}
           <div style={{ display: 'flex', gap: 4, height: 12, borderRadius: 6, overflow: 'hidden', background: 'var(--bg-input)', marginBottom: 12 }}>
@@ -547,6 +557,17 @@ export function StudyTab({ onSessionSaved }) {
     <div className="fade-up">
       {/* Config bar */}
       <div className="section" style={{ paddingTop: 16 }}>
+        {/* Section Header with settings button */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div className="section-title" style={{ marginBottom: 0 }}>타이머 설정 <TossDivider /></div>
+          <button
+            className="study-cfg-btn"
+            onClick={() => setConfigOpen(true)}
+            title="기록 항목 설정"
+          >
+            🎛️ 기록 설정
+          </button>
+        </div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           {TIMER_MODES.map(m => (
             <button
@@ -712,7 +733,7 @@ export function StudyTab({ onSessionSaved }) {
       {/* Subject stats */}
       {Object.keys(subjectStats).length > 0 && (
         <div className="section">
-          <div className="section-title">오늘 과목별 순공 시간</div>
+          <div className="section-title">과목별 순공시간 <TossDivider color="var(--green)" /></div>
           <div className="card">
             {Object.entries(subjectStats).sort((a,b) => b[1]-a[1]).map(([sub, secs], i) => (
               <div key={sub} className="subject-bar-row">
@@ -731,7 +752,7 @@ export function StudyTab({ onSessionSaved }) {
       {/* Session history */}
       {sessions.length > 0 && (
         <div className="section">
-          <div className="section-title">최근 세션 기록</div>
+          <div className="section-title">최근 세션 기록 <TossDivider /></div>
           {sessions.slice(0, 10).map(s => (
             <div key={s.id} className="session-card">
               <div className="icon-card-sm ic-blue">📚</div>
@@ -790,12 +811,6 @@ export function StudyTab({ onSessionSaved }) {
           ))}
         </div>
       </ModalSheet>
-
-      {/* Floating config button */}
-      <div style={{ position: 'fixed', bottom: 'calc(var(--tab-h) + 20px)', right: 20, zIndex: 100 }}>
-        <button className="btn btn-primary" onClick={() => setConfigOpen(true)}
-          style={{ width: 48, height: 48, borderRadius: '50%', padding: 0, fontSize: 20, boxShadow: 'var(--shadow-lg)' }}>⚙</button>
-      </div>
 
       <Toast msg={toastMsg} />
     </div>
@@ -924,7 +939,7 @@ export function WorkTab() {
 
       {/* Today stats */}
       <div className="section">
-        <div className="section-title">오늘 근무 현황</div>
+        <div className="section-title">오늘 근무 현황 <TossDivider color="var(--purple)" /></div>
         <div className="stat-row">
           <div className="stat-pill">
             <div className="stat-value">{fmtHM(totalToday)}</div>
@@ -1047,8 +1062,7 @@ export function SettingsTab({ darkMode, setDarkMode, showToast }) {
   return (
     <div className="fade-up">
       <div className="section" style={{ paddingTop: 16 }}>
-        {/* Theme */}
-        <div className="section-title">외관</div>
+        <div className="section-title">외관 <TossDivider /></div>
         <div className="card">
           <div className="setting-row">
             <div>
@@ -1061,7 +1075,7 @@ export function SettingsTab({ darkMode, setDarkMode, showToast }) {
       </div>
 
       <div className="section">
-        <div className="section-title">데이터</div>
+        <div className="section-title">데이터 <TossDivider color="var(--red)" /></div>
         <div className="card">
           <div className="setting-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 10 }}>
             <div>
@@ -1081,7 +1095,7 @@ export function SettingsTab({ darkMode, setDarkMode, showToast }) {
       </div>
 
       <div className="section">
-        <div className="section-title">앱 정보</div>
+        <div className="section-title">앱 정보 <TossDivider color="var(--text-muted)" /></div>
         <div className="card">
           <div className="setting-row">
             <div className="setting-label">버전</div>
@@ -1098,8 +1112,10 @@ export function SettingsTab({ darkMode, setDarkMode, showToast }) {
         </div>
       </div>
 
-      <div style={{ padding: '20px 20px 40px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
-        Made with ❤️ by Planor Team
+      <div style={{ padding: '16px 20px 48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 11, lineHeight: 1.8 }}>
+        <div style={{ fontWeight: 700, letterSpacing: '0.05em', marginBottom: 2 }}>Planor</div>
+        <div>© 2025 Planor · function-factory. All rights reserved.</div>
+        <div style={{ marginTop: 4, opacity: 0.6 }}>planor.kro.kr</div>
       </div>
     </div>
   );

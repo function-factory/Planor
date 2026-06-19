@@ -123,13 +123,14 @@ export default function App() {
 
       {/* ── Content ── */}
       <div className="tab-content">
-        {/* Desktop: wrap in centered container with page header */}
         <div className="desktop-content-wrap">
           <div className="desktop-page-header desktop-only">
             <div className="desktop-page-title">{activeTabData?.icon} {activeTabData?.label}</div>
             <div className="desktop-page-sub">{activeTabData?.sub}</div>
           </div>
-          {renderTab()}
+          <div key={activeTab} className="tab-fade-in">
+            {renderTab()}
+          </div>
         </div>
       </div>
 
