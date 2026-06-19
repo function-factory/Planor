@@ -16,13 +16,24 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
       - name: Install and Build 🔧
         run: |
           npm ci
           npm run build
+
+      - name: Add .nojekyll (Jekyll 비활성화)
+        run: touch dist/.nojekyll
 
       - name: Deploy 🚀
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          cname: planor.kro.kr
+          force_orphan: true
