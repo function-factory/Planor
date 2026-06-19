@@ -1,0 +1,354 @@
+/* Design System & Custom Themes for Planor */
+
+/* Base Font Declarations */
+:root {
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Lora', 'Playfair Display', Georgia, serif;
+  --font-mono: 'VT323', Courier, monospace;
+  --font-hand: 'Gaegu', 'Nanum Pen Script', cursive;
+
+  /* Default values (Modern Light) */
+  --font-family: var(--font-sans);
+  --bg-app: #f8fafc;
+  --bg-panel: rgba(255, 255, 255, 0.8);
+  --bg-input: #ffffff;
+  --border-color: #e2e8f0;
+  --border-style: solid;
+  --border-width: 1px;
+  --border-radius: 16px;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-bg: rgba(99, 102, 241, 0.1);
+  --panel-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+  --backdrop-blur: blur(12px);
+  --glow-effect: none;
+  --transition-speed: 0.3s;
+}
+
+/* Theme Classes */
+
+/* 1. Modern Dark */
+.theme-modern-dark {
+  --bg-app: #0f172a;
+  --bg-panel: rgba(30, 41, 59, 0.7);
+  --bg-input: #1e293b;
+  --border-color: #334155;
+  --border-style: solid;
+  --border-width: 1px;
+  --border-radius: 16px;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #818cf8;
+  --accent-hover: #6366f1;
+  --accent-bg: rgba(129, 140, 248, 0.15);
+  --panel-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  --backdrop-blur: blur(12px);
+  --glow-effect: none;
+}
+
+/* 2. Y2K Cyberpunk */
+.theme-y2k {
+  --bg-app: #020204;
+  --bg-panel: rgba(10, 10, 15, 0.95);
+  --bg-input: #12121e;
+  --border-color: #39ff14;
+  --border-style: double;
+  --border-width: 3px;
+  --border-radius: 0px;
+  --text-main: #39ff14;
+  --text-muted: #00aa00;
+  --accent: #bd00ff;
+  --accent-hover: #e000ff;
+  --accent-bg: rgba(57, 255, 20, 0.15);
+  --panel-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+  --backdrop-blur: none;
+  --glow-effect: 0 0 8px rgba(57, 255, 20, 0.6);
+  --font-family: var(--font-mono);
+}
+
+/* 3. Retro 8-bit Pixel */
+.theme-retro {
+  --bg-app: #2c1e38;
+  --bg-panel: #ecdcb9;
+  --bg-input: #ffffff;
+  --border-color: #4a3459;
+  --border-style: dashed;
+  --border-width: 3px;
+  --border-radius: 4px;
+  --text-main: #4a3459;
+  --text-muted: #7d5b8c;
+  --accent: #ff4e4e;
+  --accent-hover: #e03636;
+  --accent-bg: rgba(255, 78, 78, 0.15);
+  --panel-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+  --backdrop-blur: none;
+  --glow-effect: none;
+  --font-family: var(--font-mono);
+}
+
+/* 4. Spring Bloom */
+.theme-spring {
+  --bg-app: #fff1f2;
+  --bg-panel: rgba(255, 255, 255, 0.85);
+  --bg-input: #fff9fa;
+  --border-color: #fecdd3;
+  --border-style: solid;
+  --border-width: 1px;
+  --border-radius: 20px;
+  --text-main: #4c0519;
+  --text-muted: #9f1239;
+  --accent: #fb7185;
+  --accent-hover: #f43f5e;
+  --accent-bg: rgba(251, 113, 133, 0.15);
+  --panel-shadow: 0 4px 20px rgba(251, 113, 133, 0.08);
+  --backdrop-blur: blur(8px);
+  --font-family: var(--font-hand);
+}
+
+/* 5. Summer Ocean */
+.theme-summer {
+  --bg-app: #e0f2fe;
+  --bg-panel: rgba(255, 255, 255, 0.75);
+  --bg-input: #f0f9ff;
+  --border-color: #bae6fd;
+  --border-style: solid;
+  --border-width: 1px;
+  --border-radius: 12px;
+  --text-main: #0369a1;
+  --text-muted: #0284c7;
+  --accent: #0284c7;
+  --accent-hover: #0369a1;
+  --accent-bg: rgba(2, 132, 199, 0.1);
+  --panel-shadow: 0 4px 20px rgba(2, 132, 199, 0.05);
+  --backdrop-blur: blur(10px);
+}
+
+/* 6. Cozy Winter */
+.theme-winter {
+  --bg-app: #1e293b;
+  --bg-panel: rgba(15, 23, 42, 0.65);
+  --bg-input: #0f172a;
+  --border-color: #38bdf8;
+  --border-style: solid;
+  --border-width: 1px;
+  --border-radius: 24px;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent: #f97316;
+  --accent-hover: #ea580c;
+  --accent-bg: rgba(249, 115, 22, 0.2);
+  --panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  --backdrop-blur: blur(16px);
+  --glow-effect: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
+/* 7. Vintage Classic */
+.theme-classic {
+  --bg-app: #f4ecd8;
+  --bg-panel: #faf4e8;
+  --bg-input: #ffffff;
+  --border-color: #c8b99c;
+  --border-style: solid;
+  --border-width: 1px;
+  --border-radius: 4px;
+  --text-main: #3e2723;
+  --text-muted: #5d4037;
+  --accent: #8c6239;
+  --accent-hover: #6d4c41;
+  --accent-bg: rgba(140, 98, 57, 0.1);
+  --panel-shadow: 2px 2px 8px rgba(62, 39, 35, 0.08);
+  --backdrop-blur: none;
+  --font-family: var(--font-serif);
+}
+
+/* Font Classes to override */
+.font-class-sans { --font-family: var(--font-sans) !important; }
+.font-class-serif { --font-family: var(--font-serif) !important; }
+.font-class-mono { --font-family: var(--font-mono) !important; }
+.font-class-hand { --font-family: var(--font-hand) !important; }
+
+/* Global reset and styling */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Y2K CRT effects */
+.theme-y2k::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 9999;
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Common Layout Components */
+.app-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.header-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--bg-panel);
+  border: var(--border-width) var(--border-style) var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.brand-section h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.05rem;
+  margin-bottom: 0.2rem;
+  text-shadow: var(--glow-effect);
+}
+
+.brand-section p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.control-panel {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: calc(var(--border-radius) / 1.5);
+  font-weight: 600;
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid var(--border-color);
+  background: var(--bg-panel);
+  color: var(--text-main);
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #ffffff !important;
+  border-color: var(--accent);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.btn-danger:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.card {
+  background: var(--bg-panel);
+  border: var(--border-width) var(--border-style) var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: var(--backdrop-blur);
+  padding: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  border-radius: calc(var(--border-radius) / 2);
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+/* Responsive grid for widgets */
+.widgets-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .widgets-grid {
+    grid-template-columns: 1fr;
+  }
+}
