@@ -312,11 +312,18 @@ export function CalendarTab() {
                 className={`cal-day ${!c.cur ? 'other-month' : ''} ${isToday ? 'today' : ''} ${isSel && !isToday ? 'selected' : ''} ${col === 0 ? 'sun' : ''} ${col === 6 ? 'sat' : ''}`}
                 onClick={() => { if (c.cur) setSelectedDate(c.day); }}
               >
-                <div className="cal-day-num">{c.day}</div>
-                <div className="cal-dots">
-                  {evs.slice(0, 3).map((e, j) => (
-                    <div key={j} className="cal-dot" style={{ background: e.color }} />
+                <div className="cal-day-header">
+                  <span className="cal-day-num">{c.day}</span>
+                </div>
+                <div className="cal-events-list">
+                  {evs.slice(0, 2).map((e, j) => (
+                    <div key={j} className="cal-event-bar" style={{ background: e.color }} title={e.title}>
+                      {e.title}
+                    </div>
                   ))}
+                  {evs.length > 2 && (
+                    <div className="cal-event-more">+{evs.length - 2}</div>
+                  )}
                 </div>
               </div>
             );
