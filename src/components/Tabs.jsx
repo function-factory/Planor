@@ -85,6 +85,13 @@ export function HomeTab({ studySessions, workRecords }) {
   const timeStr = `${padZ(now.getHours())}:${padZ(now.getMinutes())}`;
   const secStr = padZ(now.getSeconds());
 
+  const hrs = now.getHours();
+  let greeting = "안녕하세요! 오늘도 좋은 하루 되세요 🍀";
+  if (hrs >= 5 && hrs < 12) greeting = "좋은 아침이에요! 활기찬 시작을 응원해요 ☀️";
+  else if (hrs >= 12 && hrs < 18) greeting = "나른한 오후네요! 차 한 잔의 여유와 함께 화이팅 ☕";
+  else if (hrs >= 18 && hrs < 22) greeting = "오늘 하루도 정말 고생 많으셨어요 🌙";
+  else greeting = "밤이 깊었네요. 무리하지 마시고 푹 쉬세요 💤";
+
   // Compute today's study/rest/work totals
   const todayKey = now.toLocaleDateString('sv');
   const todaySessions = studySessions.filter(s => s.date === todayKey);
@@ -120,6 +127,9 @@ export function HomeTab({ studySessions, workRecords }) {
             {timeStr}<span className="clock-sec">:{secStr}</span>
           </div>
           <div className="clock-date">{dateStr}</div>
+          <div style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+            {greeting}
+          </div>
         </div>
       </div>
 
