@@ -1159,13 +1159,9 @@ export function SettingsTab({ darkMode, setDarkMode, showToast }) {
             <div className="setting-label">버전</div>
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>v{version}</span>
           </div>
-          <div className="setting-row">
+          <div className="setting-row" style={{ borderBottom: 'none' }}>
             <div className="setting-label">도메인</div>
             <a href="https://planor.kro.kr" style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 600 }}>planor.kro.kr</a>
-          </div>
-          <div className="setting-row" style={{ borderBottom: 'none' }}>
-            <div className="setting-label">GitHub</div>
-            <a href="https://github.com/function-factory/Planor" style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 600 }}>function-factory/Planor</a>
           </div>
         </div>
       </div>

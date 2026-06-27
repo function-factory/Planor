@@ -22,10 +22,10 @@ function useLS(key, def) {
   return [val, update];
 }
 
-const CURATED_PLAYLISTS = {
+const YOUTUBE_PLAYLISTS = {
   study: [
     {
-      id: 'study-1',
+      id: 'yt-study-1',
       title: 'Lofi Hip Hop Radio - Beats to Study/Relax',
       artist: 'Lofi Girl',
       source: 'youtube',
@@ -34,53 +34,35 @@ const CURATED_PLAYLISTS = {
       lyrics: '[00:00] (차분한 로파이 비트가 흘러나옵니다)\n[00:10] 공부와 집중을 위한 완벽한 리듬.\n[00:20] Planor와 함께 효율을 높여보세요.\n[00:35] 📚 끝까지 화이팅!'
     },
     {
-      id: 'study-2',
+      id: 'yt-study-2',
       title: 'Deep Focus Ambient Music',
-      artist: 'Spotify Study Ambient',
-      source: 'spotify',
-      embedId: 'playlist/37i9dQZF1DWZeKFBq7444V',
+      artist: 'Study Ambient',
+      source: 'youtube',
+      embedId: '5qap5aO4i9A',
       cover: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=120&auto=format&fit=crop&q=60',
       lyrics: '[00:00] (잔잔한 엠비언트 사운드스케이프)\n[00:15] 마음을 비우고 집중에 몰입하세요.\n[00:30] 복잡한 생각을 지우는 잔잔한 선율.'
     }
   ],
   work: [
     {
-      id: 'work-1',
-      title: 'Coding & Focus Chill Beats',
-      artist: 'Lofi Records',
+      id: 'yt-work-1',
+      title: 'Productive Jazz for Office Focus',
+      artist: 'Cafe Music BGM',
       source: 'youtube',
-      embedId: '5qap5aO4i9A',
+      embedId: 'c0_ejQQcrwI',
       cover: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=120&auto=format&fit=crop&q=60',
-      lyrics: '[00:00] (업무용 칠 비트가 재생 중입니다)\n[00:12] 집중해서 코드와 문서를 작성해보세요.\n[00:25] 일의 속도가 붙기 시작합니다.\n[00:40] 💻 오늘의 할 일 끝까지!'
-    },
-    {
-      id: 'work-2',
-      title: 'Productive Jazz for Office',
-      artist: 'Spotify Jazz Lounge',
-      source: 'spotify',
-      embedId: 'playlist/37i9dQZF1DWZqJ5F7n658Q',
-      cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&auto=format&fit=crop&q=60',
-      lyrics: '[00:00] (부드러운 재즈 선율)\n[00:15] 사무실 백그라운드에 제격인 재즈 피아노.\n[00:40] 차분하게 일에 집중해보세요.'
+      lyrics: '[00:00] (차분하고 세련된 카페 재즈 비지엠)\n[00:15] 창밖을 바라보며 깊은 사색과 코딩.\n[00:40] 업무 효율을 극대화하는 연주곡.'
     }
   ],
   rest: [
     {
-      id: 'rest-1',
-      title: 'Rainy Night Coffee Shop Ambience',
-      artist: 'Cafe Sounds',
+      id: 'yt-rest-1',
+      title: 'Rainy Night Cozy Cafe Ambience',
+      artist: 'Acoustic Lounge',
       source: 'youtube',
       embedId: 'c0_ejQQcrwI',
       cover: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=120&auto=format&fit=crop&q=60',
-      lyrics: '[00:00] (빗소리와 따뜻한 카페 소음)\n[00:10] 눈을 감고 잠시 호흡을 가다듬으세요.\n[00:20] 커피 한 잔의 온기가 전해집니다.\n[00:40] 😴 편안한 휴식을 누리세요.'
-    },
-    {
-      id: 'rest-2',
-      title: 'Chill Melodies for Relaxation',
-      artist: 'Acoustic Rain',
-      source: 'spotify',
-      embedId: 'track/37i9dQZF1DX889p0TUIavA',
-      cover: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=120&auto=format&fit=crop&q=60',
-      lyrics: '[00:00] (어쿠스틱 감성 멜로디)\n[00:15] 지친 하루의 끝, 마음의 휴식.\n[00:35] 잠시 어깨의 짐을 내려놓으세요.'
+      lyrics: '[00:00] (카페 빗소리와 은은한 백색소음)\n[00:12] 잠시 긴장을 풀고 가만히 귀를 기울이세요.\n[00:30] 따뜻한 커피 한 잔의 여유를 느낍니다.'
     }
   ]
 };
@@ -99,35 +81,47 @@ function parseMusicUrl(url) {
   if (url.includes('open.spotify.com/')) {
     const parts = url.split('open.spotify.com/')[1]?.split(/[?#]/)[0];
     if (parts) {
-      if (parts.startsWith('track/') || parts.startsWith('playlist/') || parts.startsWith('album/')) {
-        return { source: 'spotify', embedId: parts };
-      }
-      return { source: 'spotify', embedId: 'track/' + parts };
+      return { source: 'spotify', embedId: parts };
     }
   }
   return null;
 }
 
 export default function MusicWidget({ isMobile, isOpen, onClose }) {
+  // Player Mode: youtube | spotify
+  const [playerMode, setPlayerMode] = useLS('planor-v2-player-mode', 'youtube');
+  
+  // YouTube states
   const [category, setCategory] = useState('study');
-  const [activeTrack, setActiveTrack] = useState(CURATED_PLAYLISTS.study[0]);
+  const [activeTrack, setActiveTrack] = useState(YOUTUBE_PLAYLISTS.study[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [customUrl, setCustomUrl] = useState('');
   const [expanded, setExpanded] = useLS('planor-v2-music-expanded', false);
-  const [showSettings, setShowSettings] = useState(false);
 
-  // Position for desktop drag-and-drop
-  const [pos, setPos] = useLS('planor-v2-music-pos', { x: 260, y: 550 });
-  const [dragging, setDragging] = useState(false);
-  const relPos = useRef({ x: 0, y: 0 });
-
-  // Spotify Realtime Sync States
+  // Spotify states
   const [spotifyClientId, setSpotifyClientId] = useLS('planor-spotify-client-id', '');
   const [spotifyToken, setSpotifyToken] = useLS('planor-spotify-token', '');
   const [isSpotifySynced, setIsSpotifySynced] = useState(false);
+  const [spotifyTrack, setSpotifyTrack] = useState({
+    title: '연동 대기 중',
+    artist: 'Spotify 앱 연동이 필요합니다',
+    cover: 'https://images.unsplash.com/photo-1614680376593-902f74fa0d41?w=120&auto=format&fit=crop&q=60',
+    progress: 0,
+    duration: 0,
+    isPlaying: false
+  });
 
-  // Lyrics sync states
+  // Widget Position & Size states (Lockable)
+  const [pos, setPos] = useLS('planor-v2-music-pos', { x: 270, y: 600 });
+  const [dimensions, setDimensions] = useLS('planor-v2-music-dim', { width: 320, height: 480 });
+  const [isLocked, setIsLocked] = useLS('planor-v2-music-locked', false);
+  
+  const [dragging, setDragging] = useState(false);
+  const relPos = useRef({ x: 0, y: 0 });
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Lyrics sync states (for YouTube)
   const [lyricsLines, setLyricsLines] = useState([]);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
   const lyricsContainerRef = useRef(null);
@@ -144,10 +138,11 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
       if (token) {
         setSpotifyToken(token);
         setIsSpotifySynced(true);
+        setPlayerMode('spotify');
         window.location.hash = ''; // clear hash
       }
     }
-  }, [setSpotifyToken]);
+  }, [setSpotifyToken, setPlayerMode]);
 
   // Sync token state
   useEffect(() => {
@@ -158,7 +153,7 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
 
   // Spotify Currently Playing Poller
   useEffect(() => {
-    if (!isSpotifySynced || !spotifyToken) return;
+    if (playerMode !== 'spotify' || !isSpotifySynced || !spotifyToken) return;
 
     const fetchSpotifyTrack = async () => {
       try {
@@ -171,21 +166,16 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
         if (res.status === 200) {
           const data = await res.json();
           if (data && data.item) {
-            const track = {
-              id: 'spotify-live',
+            setSpotifyTrack({
               title: data.item.name,
               artist: data.item.artists.map(a => a.name).join(', '),
-              source: 'spotify',
-              embedId: `track/${data.item.id}`,
               cover: data.item.album.images[0]?.url || 'https://images.unsplash.com/photo-1614680376593-902f74fa0d41?w=120&auto=format&fit=crop&q=60',
-              lyrics: `[00:00] 🟢 Spotify 앱 재생 실시간 연동 중...\n[00:05] 기기에서 재생 중인 곡: ${data.item.name}\n[00:15] 아티스트: ${data.item.artists.map(a => a.name).join(', ')}\n[00:25] 볼륨이나 재생 상태가 Spotify 앱과 동일하게 연동됩니다.`
-            };
-            setActiveTrack(track);
-            setIsPlaying(data.is_playing);
-            setCurrentTime(Math.floor(data.progress_ms / 1000));
+              progress: Math.floor(data.progress_ms / 1000),
+              duration: Math.floor(data.item.duration_ms / 1000),
+              isPlaying: data.is_playing
+            });
           }
         } else if (res.status === 401) {
-          // Token expired
           setSpotifyToken('');
           setIsSpotifySynced(false);
         }
@@ -197,11 +187,11 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
     fetchSpotifyTrack();
     const t = setInterval(fetchSpotifyTrack, 3000);
     return () => clearInterval(t);
-  }, [isSpotifySynced, spotifyToken, setSpotifyToken]);
+  }, [playerMode, isSpotifySynced, spotifyToken, setSpotifyToken]);
 
   // YouTube Iframe API Integration
   useEffect(() => {
-    if (activeTrack.source !== 'youtube') {
+    if (playerMode !== 'youtube' || activeTrack.source !== 'youtube') {
       if (ytPlayerRef.current) {
         try { ytPlayerRef.current.destroy(); } catch (e) {}
         ytPlayerRef.current = null;
@@ -242,7 +232,6 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
         }
       });
 
-      // Poll actual video progress for 100% sync lyrics scroll
       progressInterval = setInterval(() => {
         if (ytPlayerRef.current && ytPlayerRef.current.getCurrentTime) {
           try {
@@ -252,7 +241,6 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
       }, 500);
     };
 
-    // Load API
     if (!window.YT) {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
@@ -265,7 +253,6 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
       initYTPlayer();
     }
 
-    // Fallback checker if DOM element loads late
     retryInterval = setInterval(() => {
       if (!ytPlayerRef.current && document.getElementById('yt-player-target') && window.YT && window.YT.Player) {
         initYTPlayer();
@@ -276,7 +263,7 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
       if (progressInterval) clearInterval(progressInterval);
       if (retryInterval) clearInterval(retryInterval);
     };
-  }, [activeTrack.embedId]);
+  }, [playerMode, activeTrack.embedId]);
 
   // Parse lyrics
   useEffect(() => {
@@ -297,34 +284,9 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
     setCurrentLyricIndex(-1);
   }, [activeTrack]);
 
-  // Simulated timer for Spotify iframe or static source if not using YouTube API
+  // Update current lyric index
   useEffect(() => {
-    if (activeTrack.source === 'youtube') return; // Handled by YT Player API
-    let t = null;
-    if (isPlaying) {
-      t = setInterval(() => {
-        setCurrentTime(prev => {
-          const next = prev + 1;
-          let index = -1;
-          for (let i = 0; i < lyricsLines.length; i++) {
-            if (next >= lyricsLines[i].time) {
-              index = i;
-            } else {
-              break;
-            }
-          }
-          if (index !== -1) {
-            setCurrentLyricIndex(index);
-          }
-          return next;
-        });
-      }, 1000);
-    }
-    return () => { if (t) clearInterval(t); };
-  }, [isPlaying, lyricsLines, activeTrack.source]);
-
-  // Update current lyric index based on currentTime changes (for YouTube API too)
-  useEffect(() => {
+    if (playerMode !== 'youtube') return;
     let index = -1;
     for (let i = 0; i < lyricsLines.length; i++) {
       if (currentTime >= lyricsLines[i].time) {
@@ -336,9 +298,9 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
     if (index !== -1) {
       setCurrentLyricIndex(index);
     }
-  }, [currentTime, lyricsLines]);
+  }, [currentTime, lyricsLines, playerMode]);
 
-  // Scroll active lyric to center
+  // Scroll lyric to center
   useEffect(() => {
     if (lyricsContainerRef.current && currentLyricIndex !== -1) {
       const activeEl = lyricsContainerRef.current.childNodes[currentLyricIndex];
@@ -348,10 +310,10 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
     }
   }, [currentLyricIndex]);
 
-  // Drag handlers
+  // Drag handlers (Position Move)
   const handleMouseDown = (e) => {
-    if (isMobile) return;
-    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('iframe') || e.target.closest('.track-list') || e.target.closest('.lyrics-lines')) return;
+    if (isMobile || isLocked) return;
+    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('iframe') || e.target.closest('.track-list') || e.target.closest('.lyrics-lines') || e.target.closest('.player-mode-tabs') || e.target.closest('.music-resize-handle')) return;
     
     setDragging(true);
     relPos.current = {
@@ -368,9 +330,8 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
       let nextX = e.clientX - relPos.current.x;
       let nextY = e.clientY - relPos.current.y;
 
-      // Bound checking
-      nextX = Math.max(10, Math.min(window.innerWidth - 360, nextX));
-      nextY = Math.max(10, Math.min(window.innerHeight - 100, nextY));
+      nextX = Math.max(10, Math.min(window.innerWidth - dimensions.width, nextX));
+      nextY = Math.max(10, Math.min(window.innerHeight - 80, nextY));
 
       setPos({ x: nextX, y: nextY });
     };
@@ -388,11 +349,40 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [dragging, pos, setPos]);
+  }, [dragging, pos, dimensions.width, setPos]);
 
-  // Next / Prev controls
+  // Drag handler (Size Resize)
+  const handleResizeMouseDown = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const startWidth = dimensions.width;
+    const startHeight = dimensions.height;
+    const startX = e.clientX;
+    const startY = e.clientY;
+
+    const onMouseMove = (moveEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      
+      const newWidth = Math.max(280, Math.min(640, startWidth + dx));
+      const newHeight = Math.max(260, Math.min(650, startHeight + dy));
+      
+      setDimensions({ width: newWidth, height: newHeight });
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
+
+  // YouTube Next / Prev
   function handlePrev() {
-    const list = CURATED_PLAYLISTS[category];
+    if (playerMode !== 'youtube') return;
+    const list = YOUTUBE_PLAYLISTS[category];
     const idx = list.findIndex(t => t.id === activeTrack.id);
     if (idx > 0) {
       setActiveTrack(list[idx - 1]);
@@ -403,7 +393,8 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
   }
 
   function handleNext() {
-    const list = CURATED_PLAYLISTS[category];
+    if (playerMode !== 'youtube') return;
+    const list = YOUTUBE_PLAYLISTS[category];
     const idx = list.findIndex(t => t.id === activeTrack.id);
     if (idx !== -1 && idx < list.length - 1) {
       setActiveTrack(list[idx + 1]);
@@ -416,27 +407,25 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
   // Load Custom URLs
   function loadCustomUrl() {
     const parsed = parseMusicUrl(customUrl);
-    if (parsed) {
+    if (parsed && parsed.source === 'youtube') {
       const newTrack = {
         id: 'custom-' + Date.now(),
-        title: parsed.source === 'youtube' ? '사용자 외부 유튜브 음악' : '사용자 외부 스포티파이 음악',
-        artist: '개별 음악 연동 완료',
-        source: parsed.source,
+        title: '사용자 외부 유튜브 음악',
+        artist: '유튜브 재생 연동 완료',
+        source: 'youtube',
         embedId: parsed.embedId,
-        cover: parsed.source === 'youtube' 
-          ? 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=120&auto=format&fit=crop&q=60'
-          : 'https://images.unsplash.com/photo-1614680376593-902f74fa0d41?w=120&auto=format&fit=crop&q=60',
-        lyrics: '[00:00] 외부 연동 플레이어는 가사가 지원되지 않습니다.\n[00:10] 플레이어 내부의 자막 또는 재생창 컨트롤을 참고해주세요!'
+        cover: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=120&auto=format&fit=crop&q=60',
+        lyrics: '[00:00] 외부 연동 플레이어는 가사가 지원되지 않습니다.\n[00:10] 플레이어 자체 자막 또는 진행 바를 이용해 감상하세요.'
       };
       setActiveTrack(newTrack);
       setCustomUrl('');
       setIsPlaying(true);
     } else {
-      alert('올바른 YouTube 영상 주소 혹은 Spotify 공유 주소를 입력하세요.');
+      alert('올바른 YouTube 영상 주소(링크)를 입력하세요. (스포티파이는 라이브 탭에서 연동 가능)');
     }
   }
 
-  // Spotify Login Redirect
+  // Spotify OAuth Redirect
   function connectSpotify() {
     const clientId = spotifyClientId.trim() || 'd30ec09477fb47568c07e0c4a45a198a';
     const redirectUri = encodeURIComponent(window.location.origin + '/');
@@ -450,104 +439,182 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
     setIsSpotifySynced(false);
   }
 
-  const formattedTime = `${Math.floor(currentTime / 60)}:${String(currentTime % 60).padStart(2, '0')}`;
+  const isYT = playerMode === 'youtube';
+  const displayTitle = isYT ? activeTrack.title : spotifyTrack.title;
+  const displayArtist = isYT ? activeTrack.artist : spotifyTrack.artist;
+  const displayCover = isYT ? activeTrack.cover : spotifyTrack.cover;
+  const displayIsPlaying = isYT ? isPlaying : spotifyTrack.isPlaying;
+
+  const fmtMinSec = (sec) => {
+    return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+  };
 
   const renderCompact = () => (
     <div className={`music-compact-player ${dragging ? 'dragging' : ''}`} onMouseDown={handleMouseDown}>
-      {/* Drag handle dots */}
-      {!isMobile && <div className="drag-handle-dots" title="드래그하여 이동">⁝⁝</div>}
-      <img src={activeTrack.cover} alt="Cover" className={`album-art ${isPlaying ? 'rotating' : ''}`} />
+      {!isMobile && (
+        <div 
+          className="drag-handle-dots" 
+          onClick={() => setIsLocked(!isLocked)} 
+          title={isLocked ? "잠금 해제" : "드래그하여 이동 (클릭 시 잠금)"}
+          style={{ cursor: 'pointer' }}
+        >
+          {isLocked ? '🔒' : '⁝⁝'}
+        </div>
+      )}
+      <img src={displayCover} alt="Cover" className="album-art" />
       <div className="track-info">
-        <div className="title">{activeTrack.title}</div>
-        <div className="artist">{activeTrack.artist}</div>
+        <div className="title">{displayTitle}</div>
+        <div className="artist">{displayArtist}</div>
       </div>
       <div className="controls">
-        <button onClick={handlePrev} className="ctrl-btn" title="이전 곡">⏮</button>
-        <button onClick={() => setIsPlaying(!isPlaying)} className="ctrl-btn play-pause" title={isPlaying ? '일시정지' : '재생'}>
-          {isPlaying ? '⏸' : '▶'}
-        </button>
-        <button onClick={handleNext} className="ctrl-btn" title="다음 곡">⏭</button>
-        <button onClick={() => setExpanded(!expanded)} className="ctrl-btn size-toggle" title="상세 정보">
+        {isYT && (
+          <>
+            <button onClick={handlePrev} className="ctrl-btn" title="이전 곡">⏮</button>
+            <button onClick={() => setIsPlaying(!isPlaying)} className="ctrl-btn play-pause" title={isPlaying ? '일시정지' : '재생'}>
+              {isPlaying ? '⏸' : '▶'}
+            </button>
+            <button onClick={handleNext} className="ctrl-btn" title="다음 곡">⏭</button>
+          </>
+        )}
+        {!isYT && (
+          <span className="sync-badge-pill" style={{ color: displayIsPlaying ? 'var(--green)' : 'var(--text-muted)' }}>
+            {displayIsPlaying ? '🟢 재생 중' : '⏸ 일시정지'}
+          </span>
+        )}
+        <button onClick={() => setExpanded(!expanded)} className="ctrl-btn size-toggle" title="상세 조절">
           {expanded ? '▲' : '▼'}
         </button>
       </div>
+
+      {/* Tiny timeline progress bar at bottom of compact pill */}
+      {isYT && isPlaying && (
+        <div className="compact-progress-bar" style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 2,
+          background: 'var(--border)',
+          overflow: 'hidden',
+          borderRadius: '0 0 var(--radius-md) var(--radius-md)'
+        }}>
+          <div style={{
+            width: `${activeTrack.lyrics ? (currentTime % 60) * 1.66 : 0}%`,
+            height: '100%',
+            background: 'var(--accent)'
+          }} />
+        </div>
+      )}
     </div>
   );
 
-  const renderExpanded = () => (
-    <div className={`music-expanded-panel ${expanded || isMobile ? 'show' : ''}`} onMouseDown={handleMouseDown}>
-      <div className="expanded-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span className="panel-title">🎵 실시간 연동 플레이어</span>
-          {isSpotifySynced && <span className="sync-badge">Live Sync</span>}
-        </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => setShowSettings(!showSettings)} className="close-btn" title="설정">⚙️</button>
-          {!isMobile && <button onClick={() => setExpanded(false)} className="close-btn" title="창 닫기">✕</button>}
-        </div>
-      </div>
+  const renderExpanded = () => {
+    const isWide = !isMobile && dimensions.width >= 480;
 
-      {showSettings ? (
-        <div className="settings-panel">
-          <div className="settings-title">⚙️ API 연동 설정</div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, lineHeight: 1.4 }}>
-            Spotify에서 실시간 재생 정보를 받아옵니다. 아래 순서대로 연동을 완료해주세요.<br/>
-            1. Spotify Developer에서 앱을 생성합니다.<br/>
-            2. Redirect URI에 <strong>{window.location.origin}/</strong>을 등록합니다.<br/>
-            3. Client ID를 아래에 입력하고 로그인하세요.
+    const renderYoutubePanel = () => {
+      if (isWide) {
+        // Horizontal 2-Column Responsive Layout
+        return (
+          <div className="music-expanded-wide">
+            {/* Left Column: Player & Meta */}
+            <div className="left-column">
+              <div className="embed-container" style={{ flex: 'none' }}>
+                <div id="yt-player-target" style={{ width: '100%', height: '100%' }}></div>
+              </div>
+              <div style={{ padding: '4px 0' }}>
+                <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {activeTrack.title}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                  {activeTrack.artist}
+                </div>
+              </div>
+              
+              {/* Lyrics Panel in Left Column */}
+              <div className="lyrics-panel" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                <div className="lyrics-header">
+                  <span>동기화 가사</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {isPlaying && (
+                      <div className="equalizer">
+                        <div className="bar"></div>
+                        <div className="bar"></div>
+                        <div className="bar"></div>
+                        <div className="bar"></div>
+                      </div>
+                    )}
+                    <span className="timer-badge">{fmtMinSec(currentTime)}</span>
+                  </div>
+                </div>
+                <div ref={lyricsContainerRef} className="lyrics-lines" style={{ flex: 1 }}>
+                  {lyricsLines.map((line, idx) => (
+                    <div key={idx} className={`lyric-line ${currentLyricIndex === idx ? 'active' : ''}`}>
+                      {line.text}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Playlist & Custom URL */}
+            <div className="right-column">
+              <div className="category-tabs" style={{ flex: 'none' }}>
+                <button onClick={() => setCategory('study')} className={category === 'study' ? 'active' : ''}>📚 공부</button>
+                <button onClick={() => setCategory('work')} className={category === 'work' ? 'active' : ''}>💻 업무</button>
+                <button onClick={() => setCategory('rest')} className={category === 'rest' ? 'active' : ''}>😴 휴식</button>
+              </div>
+
+              <div className="track-list">
+                {YOUTUBE_PLAYLISTS[category].map(track => (
+                  <div
+                    key={track.id}
+                    onClick={() => { setActiveTrack(track); setIsPlaying(true); }}
+                    className={`track-item ${activeTrack.id === track.id ? 'active' : ''}`}
+                  >
+                    <span className="source-badge" style={{ background: 'var(--red)' }}>YT</span>
+                    <div className="info">
+                      <div className="title">{track.title}</div>
+                      <div className="artist">{track.artist}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="custom-url-wrap" style={{ flex: 'none' }}>
+                <input
+                  placeholder="YouTube URL 주소 입력..."
+                  value={customUrl}
+                  onChange={e => setCustomUrl(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') loadCustomUrl(); }}
+                />
+                <button onClick={loadCustomUrl}>불러오기</button>
+              </div>
+            </div>
           </div>
-          <div className="input-wrap" style={{ marginBottom: 8 }}>
-            <input 
-              placeholder="스포티파이 Client ID 입력 (기본값 제공)"
-              value={spotifyClientId}
-              onChange={e => setSpotifyClientId(e.target.value)}
-              style={{ fontSize: 11, padding: 6 }}
-            />
-          </div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {isSpotifySynced ? (
-              <button className="btn btn-danger btn-sm" onClick={disconnectSpotify} style={{ flex: 1 }}>연동 해제</button>
-            ) : (
-              <button className="btn btn-primary btn-sm" onClick={connectSpotify} style={{ flex: 1 }}>🟢 스포티파이 연동</button>
-            )}
-            <button className="btn btn-secondary btn-sm" onClick={() => setShowSettings(false)}>닫기</button>
-          </div>
-        </div>
-      ) : (
+        );
+      }
+
+      // Vertical 1-Column Layout (Default / Mobile)
+      return (
         <>
-          {/* Audio Iframe Player Container */}
           <div className="embed-container">
-            {activeTrack.source === 'youtube' ? (
-              <div id="yt-player-target" style={{ width: '100%', height: '100%' }}></div>
-            ) : (
-              <iframe
-                src={`https://open.spotify.com/embed/${activeTrack.embedId}`}
-                title="Spotify Live Link"
-                frameBorder="0"
-                allowtransparency="true"
-                allow="encrypted-media"
-              />
-            )}
+            <div id="yt-player-target" style={{ width: '100%', height: '100%' }}></div>
           </div>
 
-          {/* Curated Categorization Tabs */}
           <div className="category-tabs">
             <button onClick={() => setCategory('study')} className={category === 'study' ? 'active' : ''}>📚 공부</button>
             <button onClick={() => setCategory('work')} className={category === 'work' ? 'active' : ''}>💻 업무</button>
             <button onClick={() => setCategory('rest')} className={category === 'rest' ? 'active' : ''}>😴 휴식</button>
           </div>
 
-          {/* Playlist Tracks */}
           <div className="track-list">
-            {CURATED_PLAYLISTS[category].map(track => (
+            {YOUTUBE_PLAYLISTS[category].map(track => (
               <div
                 key={track.id}
                 onClick={() => { setActiveTrack(track); setIsPlaying(true); }}
                 className={`track-item ${activeTrack.id === track.id ? 'active' : ''}`}
               >
-                <span className="source-badge" style={{ background: track.source === 'youtube' ? 'var(--red)' : 'var(--green)' }}>
-                  {track.source === 'youtube' ? 'YT' : 'SP'}
-                </span>
+                <span className="source-badge" style={{ background: 'var(--red)' }}>YT</span>
                 <div className="info">
                   <div className="title">{track.title}</div>
                   <div className="artist">{track.artist}</div>
@@ -556,10 +623,9 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
             ))}
           </div>
 
-          {/* Paste Custom Link Input */}
           <div className="custom-url-wrap">
             <input
-              placeholder="YouTube 영상 또는 Spotify 공유 링크 입력..."
+              placeholder="YouTube 동영상 주소 입력..."
               value={customUrl}
               onChange={e => setCustomUrl(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') loadCustomUrl(); }}
@@ -567,7 +633,6 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
             <button onClick={loadCustomUrl}>불러오기</button>
           </div>
 
-          {/* Synchronized Scrolling Lyrics Panel */}
           <div className="lyrics-panel">
             <div className="lyrics-header">
               <span>동기화 가사</span>
@@ -580,24 +645,138 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
                     <div className="bar"></div>
                   </div>
                 )}
-                <span className="timer-badge">{formattedTime}</span>
+                <span className="timer-badge">{fmtMinSec(currentTime)}</span>
               </div>
             </div>
             <div ref={lyricsContainerRef} className="lyrics-lines">
               {lyricsLines.map((line, idx) => (
-                <div
-                  key={idx}
-                  className={`lyric-line ${currentLyricIndex === idx ? 'active' : ''}`}
-                >
+                <div key={idx} className={`lyric-line ${currentLyricIndex === idx ? 'active' : ''}`}>
                   {line.text}
                 </div>
               ))}
             </div>
           </div>
         </>
-      )}
-    </div>
-  );
+      );
+    };
+
+    return (
+      <div 
+        className="music-expanded-panel"
+        style={isMobile ? {} : { height: dimensions.height - 60 }}
+      >
+        {/* Mode Selector Tabs (YouTube vs Spotify Choice) */}
+        <div className="player-mode-tabs">
+          <button onClick={() => { setPlayerMode('youtube'); setShowSettings(false); }} className={isYT ? 'active' : ''}>📺 YouTube</button>
+          <button onClick={() => { setPlayerMode('spotify'); setShowSettings(false); }} className={!isYT ? 'active' : ''}>🟢 Spotify</button>
+          {!isMobile && (
+            <button 
+              onClick={() => setIsLocked(!isLocked)} 
+              className="ctrl-btn" 
+              style={{ flex: 'none', width: 28, padding: 0, fontSize: 13, background: 'transparent' }}
+              title={isLocked ? "위치 잠금 해제" : "위치 잠금"}
+            >
+              {isLocked ? '🔒' : '🔓'}
+            </button>
+          )}
+        </div>
+
+        {showSettings ? (
+          <div className="settings-panel">
+            <div className="settings-title">⚙️ API 연동 설정</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, lineHeight: 1.4 }}>
+              Spotify에서 실시간 재생 정보를 받아옵니다. 아래 순서대로 연동을 완료해주세요.<br/>
+              1. Spotify Developer에서 앱을 생성합니다.<br/>
+              2. Redirect URI에 <strong>{window.location.origin}/</strong>을 등록합니다.<br/>
+              3. Client ID를 아래에 입력하고 로그인하세요.
+            </div>
+            <div className="input-wrap" style={{ marginBottom: 8 }}>
+              <input 
+                placeholder="스포티파이 Client ID 입력 (기본값 제공)"
+                value={spotifyClientId}
+                onChange={e => setSpotifyClientId(e.target.value)}
+                style={{ fontSize: 11, padding: 6 }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {isSpotifySynced ? (
+                <button className="btn btn-danger btn-sm" onClick={disconnectSpotify} style={{ flex: 1 }}>연동 해제</button>
+              ) : (
+                <button className="btn btn-primary btn-sm" onClick={connectSpotify} style={{ flex: 1 }}>🟢 스포티파이 연동</button>
+              )}
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowSettings(false)}>닫기</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {isYT ? (
+              renderYoutubePanel()
+            ) : (
+              /* Spotify Panel */
+              <div className="spotify-sync-panel">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)' }}>스포티파이 연동 상태</span>
+                  <button onClick={() => setShowSettings(true)} className="btn btn-secondary btn-sm" style={{ fontSize: 10, padding: '2px 8px' }}>⚙️ 설정</button>
+                </div>
+                {isSpotifySynced ? (
+                  <>
+                    <div style={{ textAlign: 'center', padding: '12px 8px' }}>
+                      <img 
+                        src={spotifyTrack.cover} 
+                        alt="Spotify Cover" 
+                        style={{ width: 120, height: 120, borderRadius: 'var(--radius-sm)', boxShadow: 'var(--shadow-md)', marginBottom: 12 }} 
+                      />
+                      <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--text-primary)', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {spotifyTrack.title}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{spotifyTrack.artist}</div>
+                    </div>
+
+                    {spotifyTrack.duration > 0 && (
+                      <div style={{ padding: '0 4px', marginBottom: 12 }}>
+                        <div className="spotify-progress-wrap">
+                          <div 
+                            className="spotify-progress-fill" 
+                            style={{ width: `${(spotifyTrack.progress / spotifyTrack.duration) * 100}%` }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
+                          <span>{fmtMinSec(spotifyTrack.progress)}</span>
+                          <span>{fmtMinSec(spotifyTrack.duration)}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="sync-status-msg" style={{ fontSize: 11, color: 'var(--green)', fontWeight: 700, textAlign: 'center', background: 'var(--green-light)', padding: '6px 12px', borderRadius: 4 }}>
+                      🟢 기기에서 실시간 재생 연동 중
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ padding: '12px 6px' }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 700, marginBottom: 8 }}>🟢 Spotify 라이브 연동 안내</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 16 }}>
+                      휴대폰이나 PC의 Spotify 앱에서 지금 재생 중인 음악 정보를 Planor에 실시간으로 동기화합니다.
+                      우측 상단 ⚙️ 설정을 클릭해 연동을 완료해주세요.
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Resizing drag handle in bottom-right corner (Only for desktop expanded) */}
+        {!isMobile && !isLocked && (
+          <div 
+            className="music-resize-handle" 
+            onMouseDown={handleResizeMouseDown}
+          >
+            ◢
+          </div>
+        )}
+      </div>
+    );
+  };
 
   if (isMobile) {
     return (
@@ -614,7 +793,8 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
         position: 'fixed',
         left: pos.x,
         top: pos.y,
-        zIndex: 999
+        width: dimensions.width,
+        height: expanded ? dimensions.height : 'auto'
       }}
     >
       {renderCompact()}
