@@ -1,5 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+// Premium SVG Icon set
+const PlayIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+);
+const PauseIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+);
+const PrevIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+);
+const NextIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6zm9-12v12h2V6z"/></svg>
+);
+const ChevronDownIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+);
+const ChevronUpIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+);
+const SettingsIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+);
+const YouTubeIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 6, color: '#ff0000' }}><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11C4.482 20.455 12 20.455 12 20.455s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+);
+const SpotifyIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 6, color: '#1db954' }}><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.565.387-.86.207-2.377-1.454-5.37-1.783-8.894-.978-.335.077-.67-.133-.746-.47-.077-.335.133-.67.47-.746 3.847-.88 7.143-.51 9.823 1.13.295.18.387.563.207.857zm1.226-2.724c-.226.367-.707.487-1.074.26-2.72-1.672-6.87-2.157-10.082-1.182-.413.125-.847-.107-.972-.52-.125-.413.107-.847.52-.972 3.673-1.114 8.243-.57 11.35 1.343.366.226.486.707.258 1.071zm.106-2.833C14.392 8.81 8.57 8.618 5.176 9.648a1.002 1.002 0 1 1-.58-1.916c3.896-1.182 10.32-.957 14.374 1.45 1.012.6 1.336 1.91.737 2.922-.6 1.01-1.91 1.335-2.92 1.05z"/></svg>
+);
+
 // Local storage helper
 function useLS(key, def) {
   const [val, setVal] = useState(() => {
@@ -57,7 +86,7 @@ const YOUTUBE_PLAYLISTS = {
   rest: [
     {
       id: 'yt-rest-1',
-      title: 'Rainy Night Cozy Cafe Ambience',
+      title: 'Cozy Rain Cafe Ambience',
       artist: 'Acoustic Lounge',
       source: 'youtube',
       embedId: 'c0_ejQQcrwI',
@@ -112,14 +141,19 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
     isPlaying: false
   });
 
-  // Widget Position & Size states (Lockable)
-  const [pos, setPos] = useLS('planor-v2-music-pos', { x: 270, y: 600 });
-  const [dimensions, setDimensions] = useLS('planor-v2-music-dim', { width: 320, height: 480 });
-  const [isLocked, setIsLocked] = useLS('planor-v2-music-locked', false);
+  // Widget Position & Size states
+  const [pos, setPos] = useLS('planor-v2-music-pos', { x: window.innerWidth - 340, y: 24 });
+  const [userDimensions, setUserDimensions] = useLS('planor-v2-music-user-dim', { width: 320, height: 480 });
+  const [dimensions, setDimensions] = useState({ width: 320, height: 480 });
   
   const [dragging, setDragging] = useState(false);
   const relPos = useRef({ x: 0, y: 0 });
   const [showSettings, setShowSettings] = useState(false);
+
+  // Sync dimensions with userDimensions by default
+  useEffect(() => {
+    setDimensions(userDimensions);
+  }, [userDimensions]);
 
   // Lyrics sync states (for YouTube)
   const [lyricsLines, setLyricsLines] = useState([]);
@@ -310,9 +344,9 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
     }
   }, [currentLyricIndex]);
 
-  // Drag handlers (Position Move)
+  // Drag handlers (Position Move with Snapping)
   const handleMouseDown = (e) => {
-    if (isMobile || isLocked) return;
+    if (isMobile) return;
     if (e.target.closest('button') || e.target.closest('input') || e.target.closest('iframe') || e.target.closest('.track-list') || e.target.closest('.lyrics-lines') || e.target.closest('.player-mode-tabs') || e.target.closest('.music-resize-handle')) return;
     
     setDragging(true);
@@ -330,9 +364,33 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
       let nextX = e.clientX - relPos.current.x;
       let nextY = e.clientY - relPos.current.y;
 
-      nextX = Math.max(10, Math.min(window.innerWidth - dimensions.width, nextX));
-      nextY = Math.max(10, Math.min(window.innerHeight - 80, nextY));
+      // Restrict to screen bounds
+      nextX = Math.max(10, Math.min(window.innerWidth - dimensions.width - 10, nextX));
+      nextY = Math.max(10, Math.min(window.innerHeight - (expanded ? dimensions.height : 60) - 10, nextY));
 
+      // Snapping points: Top-Right (Snap 1), Below Top Navigation (Snap 2), Left Sidebar Bottom (Snap 3)
+      const snapPoints = [
+        { x: window.innerWidth - dimensions.width - 24, y: 24, w: 300, h: 420, label: 'top-right' },
+        { x: window.innerWidth - dimensions.width - 24, y: 120, w: 320, h: 460, label: 'right-subtop' },
+        { x: 24, y: window.innerHeight - (expanded ? 400 : 60) - 24, w: 280, h: 380, label: 'left-bottom' }
+      ];
+
+      let activeSnap = null;
+      for (const pt of snapPoints) {
+        const dist = Math.hypot(nextX - pt.x, nextY - pt.y);
+        if (dist < 40) {
+          nextX = pt.x;
+          nextY = pt.y;
+          activeSnap = pt;
+          break;
+        }
+      }
+
+      if (activeSnap) {
+        setDimensions({ width: activeSnap.w, height: activeSnap.h });
+      } else {
+        setDimensions(userDimensions);
+      }
       setPos({ x: nextX, y: nextY });
     };
 
@@ -349,7 +407,7 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [dragging, pos, dimensions.width, setPos]);
+  }, [dragging, pos, dimensions, expanded, userDimensions, setPos]);
 
   // Drag handler (Size Resize)
   const handleResizeMouseDown = (e) => {
@@ -367,6 +425,7 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
       const newWidth = Math.max(280, Math.min(640, startWidth + dx));
       const newHeight = Math.max(260, Math.min(650, startHeight + dy));
       
+      setUserDimensions({ width: newWidth, height: newHeight });
       setDimensions({ width: newWidth, height: newHeight });
     };
 
@@ -421,7 +480,7 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
       setCustomUrl('');
       setIsPlaying(true);
     } else {
-      alert('올바른 YouTube 영상 주소(링크)를 입력하세요. (스포티파이는 라이브 탭에서 연동 가능)');
+      alert('올바른 YouTube 영상 주소(링크)를 입력하세요.');
     }
   }
 
@@ -452,13 +511,8 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
   const renderCompact = () => (
     <div className={`music-compact-player ${dragging ? 'dragging' : ''}`} onMouseDown={handleMouseDown}>
       {!isMobile && (
-        <div 
-          className="drag-handle-dots" 
-          onClick={() => setIsLocked(!isLocked)} 
-          title={isLocked ? "잠금 해제" : "드래그하여 이동 (클릭 시 잠금)"}
-          style={{ cursor: 'pointer' }}
-        >
-          {isLocked ? '🔒' : '⁝⁝'}
+        <div className="drag-handle-dots" title="드래그하여 이동 (특정 모서리 부근 스냅)">
+          ⁝⁝
         </div>
       )}
       <img src={displayCover} alt="Cover" className="album-art" />
@@ -469,24 +523,24 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
       <div className="controls">
         {isYT && (
           <>
-            <button onClick={handlePrev} className="ctrl-btn" title="이전 곡">⏮</button>
+            <button onClick={handlePrev} className="ctrl-btn" title="이전 곡"><PrevIcon /></button>
             <button onClick={() => setIsPlaying(!isPlaying)} className="ctrl-btn play-pause" title={isPlaying ? '일시정지' : '재생'}>
-              {isPlaying ? '⏸' : '▶'}
+              {isPlaying ? <PauseIcon /> : <PlayIcon />}
             </button>
-            <button onClick={handleNext} className="ctrl-btn" title="다음 곡">⏭</button>
+            <button onClick={handleNext} className="ctrl-btn" title="다음 곡"><NextIcon /></button>
           </>
         )}
         {!isYT && (
           <span className="sync-badge-pill" style={{ color: displayIsPlaying ? 'var(--green)' : 'var(--text-muted)' }}>
-            {displayIsPlaying ? '🟢 재생 중' : '⏸ 일시정지'}
+            {displayIsPlaying ? '🟢 Live' : '⏸ Pause'}
           </span>
         )}
         <button onClick={() => setExpanded(!expanded)} className="ctrl-btn size-toggle" title="상세 조절">
-          {expanded ? '▲' : '▼'}
+          {expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
         </button>
       </div>
 
-      {/* Tiny timeline progress bar at bottom of compact pill */}
+      {/* Tiny timeline progress bar */}
       {isYT && isPlaying && (
         <div className="compact-progress-bar" style={{
           position: 'absolute',
@@ -513,10 +567,9 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
 
     const renderYoutubePanel = () => {
       if (isWide) {
-        // Horizontal 2-Column Responsive Layout
         return (
           <div className="music-expanded-wide">
-            {/* Left Column: Player & Meta */}
+            {/* Left Column */}
             <div className="left-column">
               <div className="embed-container" style={{ flex: 'none' }}>
                 <div id="yt-player-target" style={{ width: '100%', height: '100%' }}></div>
@@ -530,7 +583,6 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
                 </div>
               </div>
               
-              {/* Lyrics Panel in Left Column */}
               <div className="lyrics-panel" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                 <div className="lyrics-header">
                   <span>동기화 가사</span>
@@ -556,7 +608,7 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Right Column: Playlist & Custom URL */}
+            {/* Right Column */}
             <div className="right-column">
               <div className="category-tabs" style={{ flex: 'none' }}>
                 <button onClick={() => setCategory('study')} className={category === 'study' ? 'active' : ''}>📚 공부</button>
@@ -582,7 +634,7 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
 
               <div className="custom-url-wrap" style={{ flex: 'none' }}>
                 <input
-                  placeholder="YouTube URL 주소 입력..."
+                  placeholder="YouTube URL 입력..."
                   value={customUrl}
                   onChange={e => setCustomUrl(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') loadCustomUrl(); }}
@@ -594,7 +646,6 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
         );
       }
 
-      // Vertical 1-Column Layout (Default / Mobile)
       return (
         <>
           <div className="embed-container">
@@ -665,25 +716,19 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
         className="music-expanded-panel"
         style={isMobile ? {} : { height: dimensions.height - 60 }}
       >
-        {/* Mode Selector Tabs (YouTube vs Spotify Choice) */}
+        {/* Mode Selector Tabs with Premium SVGs */}
         <div className="player-mode-tabs">
-          <button onClick={() => { setPlayerMode('youtube'); setShowSettings(false); }} className={isYT ? 'active' : ''}>📺 YouTube</button>
-          <button onClick={() => { setPlayerMode('spotify'); setShowSettings(false); }} className={!isYT ? 'active' : ''}>🟢 Spotify</button>
-          {!isMobile && (
-            <button 
-              onClick={() => setIsLocked(!isLocked)} 
-              className="ctrl-btn" 
-              style={{ flex: 'none', width: 28, padding: 0, fontSize: 13, background: 'transparent' }}
-              title={isLocked ? "위치 잠금 해제" : "위치 잠금"}
-            >
-              {isLocked ? '🔒' : '🔓'}
-            </button>
-          )}
+          <button onClick={() => { setPlayerMode('youtube'); setShowSettings(false); }} className={isYT ? 'active' : ''}>
+            <YouTubeIcon /> YouTube
+          </button>
+          <button onClick={() => { setPlayerMode('spotify'); setShowSettings(false); }} className={!isYT ? 'active' : ''}>
+            <SpotifyIcon /> Spotify
+          </button>
         </div>
 
         {showSettings ? (
           <div className="settings-panel">
-            <div className="settings-title">⚙️ API 연동 설정</div>
+            <div className="settings-title"><SettingsIcon /> API 연동 설정</div>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, lineHeight: 1.4 }}>
               Spotify에서 실시간 재생 정보를 받아옵니다. 아래 순서대로 연동을 완료해주세요.<br/>
               1. Spotify Developer에서 앱을 생성합니다.<br/>
@@ -692,7 +737,7 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
             </div>
             <div className="input-wrap" style={{ marginBottom: 8 }}>
               <input 
-                placeholder="스포티파이 Client ID 입력 (기본값 제공)"
+                placeholder="스포티파이 Client ID 입력"
                 value={spotifyClientId}
                 onChange={e => setSpotifyClientId(e.target.value)}
                 style={{ fontSize: 11, padding: 6 }}
@@ -702,7 +747,7 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
               {isSpotifySynced ? (
                 <button className="btn btn-danger btn-sm" onClick={disconnectSpotify} style={{ flex: 1 }}>연동 해제</button>
               ) : (
-                <button className="btn btn-primary btn-sm" onClick={connectSpotify} style={{ flex: 1 }}>🟢 스포티파이 연동</button>
+                <button className="btn btn-primary btn-sm" onClick={connectSpotify} style={{ flex: 1 }}>로그인 연동</button>
               )}
               <button className="btn btn-secondary btn-sm" onClick={() => setShowSettings(false)}>닫기</button>
             </div>
@@ -716,7 +761,9 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
               <div className="spotify-sync-panel">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-muted)' }}>스포티파이 연동 상태</span>
-                  <button onClick={() => setShowSettings(true)} className="btn btn-secondary btn-sm" style={{ fontSize: 10, padding: '2px 8px' }}>⚙️ 설정</button>
+                  <button onClick={() => setShowSettings(true)} className="btn btn-secondary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, padding: '2px 8px' }}>
+                    <SettingsIcon /> 설정
+                  </button>
                 </div>
                 {isSpotifySynced ? (
                   <>
@@ -765,8 +812,8 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
           </>
         )}
 
-        {/* Resizing drag handle in bottom-right corner (Only for desktop expanded) */}
-        {!isMobile && !isLocked && (
+        {/* Resizing drag handle (Only for desktop) */}
+        {!isMobile && (
           <div 
             className="music-resize-handle" 
             onMouseDown={handleResizeMouseDown}
@@ -794,7 +841,8 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
         left: pos.x,
         top: pos.y,
         width: dimensions.width,
-        height: expanded ? dimensions.height : 'auto'
+        height: expanded ? dimensions.height : 'auto',
+        zIndex: 2147483647
       }}
     >
       {renderCompact()}
