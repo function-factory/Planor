@@ -1,4 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+
+// --- Spotify PKCE Helpers ---
+function generateRandomString(length) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const arr = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(arr, b => chars[b % chars.length]).join('');
+}
+async function generateCodeChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
 
 // Premium SVG Icon set
 const PlayIcon = () => (
@@ -131,29 +145,66 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
   // Spotify states
   const [spotifyClientId, setSpotifyClientId] = useLS('planor-spotify-client-id', '');
   const [spotifyToken, setSpotifyToken] = useLS('planor-spotify-token', '');
+  const [spotifyTokenExpiry, setSpotifyTokenExpiry] = useLS('planor-spotify-expiry', 0);
   const [isSpotifySynced, setIsSpotifySynced] = useState(false);
+  const [spotifyError, setSpotifyError] = useState(''); // '' | 'expired' | 'error'
   const [spotifyTrack, setSpotifyTrack] = useState({
     title: '연동 대기 중',
-    artist: 'Spotify 앱 연동이 필요합니다',
+    artist: 'Spotify 연동이 필요합니다',
     cover: 'https://images.unsplash.com/photo-1614680376593-902f74fa0d41?w=120&auto=format&fit=crop&q=60',
     progress: 0,
     duration: 0,
     isPlaying: false
   });
 
-  // Widget Position & Size states
-  const [pos, setPos] = useLS('planor-v2-music-pos', { x: window.innerWidth - 340, y: 24 });
-  const [userDimensions, setUserDimensions] = useLS('planor-v2-music-user-dim', { width: 320, height: 480 });
+  // Responsive screen width tracking
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Widget Position — NOT persisted (resets to top-right on refresh)
+  const [pos, setPos] = useState(null);
+  // Widget Size — persisted so user resizes are remembered
+  const [userDimensions, setUserDimensions] = useLS('planor-v3-music-user-dim', { width: 320, height: 480 });
   const [dimensions, setDimensions] = useState({ width: 320, height: 480 });
-  
+  const [posReady, setPosReady] = useState(false);
+
   const [dragging, setDragging] = useState(false);
   const relPos = useRef({ x: 0, y: 0 });
   const [showSettings, setShowSettings] = useState(false);
 
-  // Sync dimensions with userDimensions by default
+  // Sync dimensions with userDimensions
   useEffect(() => {
     setDimensions(userDimensions);
   }, [userDimensions]);
+
+  // Initialize position to top-right corner on every mount (refresh resets position)
+  useEffect(() => {
+    const calcDefault = () => ({
+      x: window.innerWidth - dimensions.width - 24,
+      y: 24
+    });
+    setPos(calcDefault());
+    setPosReady(true);
+
+    // Keep widget in-bounds on window resize
+    const onResize = () => {
+      setPos(prev => {
+        if (!prev) return calcDefault();
+        return {
+          x: Math.min(prev.x, window.innerWidth - dimensions.width - 10),
+          y: Math.min(prev.y, window.innerHeight - 60)
+        };
+      });
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Lyrics sync states (for YouTube)
   const [lyricsLines, setLyricsLines] = useState([]);
@@ -163,40 +214,99 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
   // YouTube API instance
   const ytPlayerRef = useRef(null);
 
-  // Parse Spotify tokens from redirect hash on mount
+  // Parse Spotify PKCE callback (code) or legacy Implicit token from hash
   useEffect(() => {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    const state = url.searchParams.get('state');
+
+    if (code && state === 'planor_spotify') {
+      // PKCE: exchange code for token
+      const verifier = sessionStorage.getItem('spotify_pkce_verifier');
+      if (verifier) {
+        const redirectUri = window.location.origin + '/';
+        const storedClientId = localStorage.getItem('planor-spotify-client-id');
+        const clientId = storedClientId ? JSON.parse(storedClientId) : '';
+        if (clientId) {
+          fetch('https://accounts.spotify.com/api/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_id: clientId,
+              grant_type: 'authorization_code',
+              code,
+              redirect_uri: redirectUri,
+              code_verifier: verifier
+            })
+          }).then(r => r.json()).then(data => {
+            if (data.access_token) {
+              setSpotifyToken(data.access_token);
+              setSpotifyTokenExpiry(Date.now() + (data.expires_in || 3600) * 1000);
+              setIsSpotifySynced(true);
+              setPlayerMode('spotify');
+              sessionStorage.removeItem('spotify_pkce_verifier');
+              setSpotifyError('');
+            } else {
+              setSpotifyError('error');
+            }
+          }).catch(() => setSpotifyError('error'));
+        }
+      }
+      // Clean URL
+      url.searchParams.delete('code');
+      url.searchParams.delete('state');
+      window.history.replaceState({}, '', url.pathname);
+    }
+
+    // Legacy: Implicit flow hash token (backward compat)
     const hash = window.location.hash;
     if (hash) {
       const params = new URLSearchParams(hash.substring(1));
       const token = params.get('access_token');
+      const expiresIn = parseInt(params.get('expires_in') || '3600', 10);
       if (token) {
         setSpotifyToken(token);
+        setSpotifyTokenExpiry(Date.now() + expiresIn * 1000);
         setIsSpotifySynced(true);
         setPlayerMode('spotify');
-        window.location.hash = ''; // clear hash
+        setSpotifyError('');
+        window.location.hash = '';
       }
     }
-  }, [setSpotifyToken, setPlayerMode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Sync token state
+  // Check token validity on load
   useEffect(() => {
-    if (spotifyToken) {
-      setIsSpotifySynced(true);
+    if (spotifyToken && spotifyTokenExpiry) {
+      if (Date.now() < spotifyTokenExpiry) {
+        setIsSpotifySynced(true);
+        setSpotifyError('');
+      } else {
+        setIsSpotifySynced(false);
+        setSpotifyError('expired');
+        setSpotifyToken('');
+      }
     }
-  }, [spotifyToken]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Spotify Currently Playing Poller
   useEffect(() => {
     if (playerMode !== 'spotify' || !isSpotifySynced || !spotifyToken) return;
 
     const fetchSpotifyTrack = async () => {
+      // Check expiry before each call
+      if (spotifyTokenExpiry && Date.now() > spotifyTokenExpiry) {
+        setIsSpotifySynced(false);
+        setSpotifyError('expired');
+        setSpotifyToken('');
+        return;
+      }
       try {
         const res = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
-          headers: {
-            'Authorization': `Bearer ${spotifyToken}`
-          }
+          headers: { 'Authorization': `Bearer ${spotifyToken}` }
         });
-        
         if (res.status === 200) {
           const data = await res.json();
           if (data && data.item) {
@@ -208,13 +318,19 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
               duration: Math.floor(data.item.duration_ms / 1000),
               isPlaying: data.is_playing
             });
+            setSpotifyError('');
           }
         } else if (res.status === 401) {
           setSpotifyToken('');
           setIsSpotifySynced(false);
+          setSpotifyError('expired');
+        } else if (res.status === 204) {
+          // No track playing
+          setSpotifyTrack(prev => ({ ...prev, title: '재생 중인 곡 없음', artist: 'Spotify에서 음악을 재생해주세요', isPlaying: false }));
         }
       } catch (err) {
         console.error('Spotify fetch error:', err);
+        setSpotifyError('error');
       }
     };
 
@@ -349,10 +465,11 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
     if (isMobile) return;
     if (e.target.closest('button') || e.target.closest('input') || e.target.closest('iframe') || e.target.closest('.track-list') || e.target.closest('.lyrics-lines') || e.target.closest('.player-mode-tabs') || e.target.closest('.music-resize-handle')) return;
     
+    const currentPos = pos || { x: window.innerWidth - 344, y: 24 };
     setDragging(true);
     relPos.current = {
-      x: e.clientX - pos.x,
-      y: e.clientY - pos.y
+      x: e.clientX - currentPos.x,
+      y: e.clientY - currentPos.y
     };
     document.body.style.userSelect = 'none';
     e.preventDefault();
@@ -484,18 +601,37 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
     }
   }
 
-  // Spotify OAuth Redirect
-  function connectSpotify() {
-    const clientId = spotifyClientId.trim() || 'd30ec09477fb47568c07e0c4a45a198a';
-    const redirectUri = encodeURIComponent(window.location.origin + '/');
-    const scopes = encodeURIComponent('user-read-currently-playing user-read-playback-state');
-    const url = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${redirectUri}&scope=${scopes}`;
-    window.location.href = url;
+  // Spotify PKCE OAuth
+  async function connectSpotify() {
+    const clientId = spotifyClientId.trim();
+    if (!clientId) {
+      setSpotifyError('no_client');
+      return;
+    }
+    const verifier = generateRandomString(64);
+    const challenge = await generateCodeChallenge(verifier);
+    sessionStorage.setItem('spotify_pkce_verifier', verifier);
+
+    const redirectUri = window.location.origin + '/';
+    const scopes = 'user-read-currently-playing user-read-playback-state';
+    const params = new URLSearchParams({
+      client_id: clientId,
+      response_type: 'code',
+      redirect_uri: redirectUri,
+      scope: scopes,
+      state: 'planor_spotify',
+      code_challenge_method: 'S256',
+      code_challenge: challenge
+    });
+    window.location.href = `https://accounts.spotify.com/authorize?${params}`;
   }
 
   function disconnectSpotify() {
     setSpotifyToken('');
+    setSpotifyTokenExpiry(0);
     setIsSpotifySynced(false);
+    setSpotifyError('');
+    sessionStorage.removeItem('spotify_pkce_verifier');
   }
 
   const isYT = playerMode === 'youtube';
@@ -728,26 +864,62 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
 
         {showSettings ? (
           <div className="settings-panel">
-            <div className="settings-title"><SettingsIcon /> API 연동 설정</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, lineHeight: 1.4 }}>
-              Spotify에서 실시간 재생 정보를 받아옵니다. 아래 순서대로 연동을 완료해주세요.<br/>
-              1. Spotify Developer에서 앱을 생성합니다.<br/>
-              2. Redirect URI에 <strong>{window.location.origin}/</strong>을 등록합니다.<br/>
-              3. Client ID를 아래에 입력하고 로그인하세요.
+            <div className="settings-title"><SettingsIcon /> Spotify 연동 설정</div>
+
+            {/* Step 1: Redirect URI */}
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>① Redirect URI 등록</div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <div style={{ flex: 1, fontSize: 10, background: 'var(--surface-2)', borderRadius: 4, padding: '5px 8px', color: 'var(--text-secondary)', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', border: '1px solid var(--border)' }}>
+                  {window.location.origin}/
+                </div>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => { navigator.clipboard.writeText(window.location.origin + '/'); }}
+                  style={{ whiteSpace: 'nowrap', fontSize: 10, padding: '4px 8px' }}
+                  title="클립보드에 복사"
+                >
+                  복사
+                </button>
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.4 }}>
+                <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer" style={{ color: '#1db954' }}>Spotify Developer Dashboard</a>에서 앱을 만들고 위 주소를 Redirect URI로 등록하세요.
+              </div>
             </div>
-            <div className="input-wrap" style={{ marginBottom: 8 }}>
-              <input 
-                placeholder="스포티파이 Client ID 입력"
-                value={spotifyClientId}
-                onChange={e => setSpotifyClientId(e.target.value)}
-                style={{ fontSize: 11, padding: 6 }}
-              />
+
+            {/* Step 2: Client ID */}
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>② Client ID 입력</div>
+              <div className="input-wrap">
+                <input
+                  placeholder="Client ID 붙여넣기"
+                  value={spotifyClientId}
+                  onChange={e => setSpotifyClientId(e.target.value)}
+                  style={{ fontSize: 11, padding: '6px 8px', fontFamily: 'monospace' }}
+                />
+              </div>
             </div>
+
+            {/* Error messages */}
+            {spotifyError === 'no_client' && (
+              <div style={{ fontSize: 10, color: '#ef4444', marginBottom: 8 }}>⚠️ Client ID를 입력해주세요.</div>
+            )}
+            {spotifyError === 'error' && (
+              <div style={{ fontSize: 10, color: '#ef4444', marginBottom: 8 }}>⚠️ 연동에 실패했습니다. Client ID와 Redirect URI를 확인해주세요.</div>
+            )}
+
             <div style={{ display: 'flex', gap: 6 }}>
               {isSpotifySynced ? (
                 <button className="btn btn-danger btn-sm" onClick={disconnectSpotify} style={{ flex: 1 }}>연동 해제</button>
               ) : (
-                <button className="btn btn-primary btn-sm" onClick={connectSpotify} style={{ flex: 1 }}>로그인 연동</button>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={connectSpotify}
+                  style={{ flex: 1, background: '#1db954', borderColor: '#1db954' }}
+                  disabled={!spotifyClientId.trim()}
+                >
+                  Spotify로 로그인
+                </button>
               )}
               <button className="btn btn-secondary btn-sm" onClick={() => setShowSettings(false)}>닫기</button>
             </div>
@@ -765,6 +937,22 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
                     <SettingsIcon /> 설정
                   </button>
                 </div>
+
+                {/* Token expired notice */}
+                {spotifyError === 'expired' && (
+                  <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 6, padding: '8px 10px', marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#dc2626', marginBottom: 4 }}>⏰ 토큰이 만료되었습니다</div>
+                    <div style={{ fontSize: 10, color: '#991b1b', marginBottom: 8 }}>Spotify 세션이 만료됐습니다. 다시 로그인해주세요.</div>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={connectSpotify}
+                      style={{ width: '100%', background: '#1db954', borderColor: '#1db954', fontSize: 11 }}
+                    >
+                      다시 연동하기
+                    </button>
+                  </div>
+                )}
+
                 {isSpotifySynced ? (
                   <>
                     <div style={{ textAlign: 'center', padding: '12px 8px' }}>
@@ -797,16 +985,25 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
                     <div className="sync-status-msg" style={{ fontSize: 11, color: 'var(--green)', fontWeight: 700, textAlign: 'center', background: 'var(--green-light)', padding: '6px 12px', borderRadius: 4 }}>
                       🟢 기기에서 실시간 재생 연동 중
                     </div>
-                  </>
-                ) : (
-                  <div style={{ padding: '12px 6px' }}>
-                    <div style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 700, marginBottom: 8 }}>🟢 Spotify 라이브 연동 안내</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 16 }}>
-                      휴대폰이나 PC의 Spotify 앱에서 지금 재생 중인 음악 정보를 Planor에 실시간으로 동기화합니다.
-                      우측 상단 ⚙️ 설정을 클릭해 연동을 완료해주세요.
+                  </> 
+                ) : !spotifyError ? (
+                  <div style={{ padding: '12px 6px', textAlign: 'center' }}>
+                    <div style={{ marginBottom: 12 }}>
+                      <SpotifyIcon />
                     </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 700, marginBottom: 6 }}>Spotify 연동이 필요합니다</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 14 }}>
+                      설정에서 Client ID를 입력하면 지금 듣고 있는 곡이 실시간으로 표시됩니다.
+                    </div>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => setShowSettings(true)}
+                      style={{ background: '#1db954', borderColor: '#1db954', width: '100%' }}
+                    >
+                      연동 설정 열기
+                    </button>
                   </div>
-                )}
+                ) : null}
               </div>
             )}
           </>
@@ -825,7 +1022,14 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
     );
   };
 
-  if (isMobile) {
+  const actualIsMobile = isMobile || windowWidth < 900;
+
+  // Prevent desktop portal floating widget on mobile viewport widths
+  if (!isMobile && windowWidth < 900) {
+    return null;
+  }
+
+  if (actualIsMobile) {
     return (
       <div className="mobile-music-player">
         {renderExpanded()}
@@ -833,20 +1037,26 @@ export default function MusicWidget({ isMobile, isOpen, onClose }) {
     );
   }
 
-  return (
+  const safePos = pos || { x: window.innerWidth - 344, y: 24 };
+
+  const widget = (
     <div
       className="desktop-music-widget"
       style={{
         position: 'fixed',
-        left: pos.x,
-        top: pos.y,
+        left: safePos.x,
+        top: safePos.y,
         width: dimensions.width,
         height: expanded ? dimensions.height : 'auto',
-        zIndex: 2147483647
+        zIndex: 2147483647,
+        opacity: posReady ? 1 : 0,
+        transition: 'opacity 0.15s ease'
       }}
     >
       {renderCompact()}
       {expanded && renderExpanded()}
     </div>
   );
+
+  return createPortal(widget, document.body);
 }
