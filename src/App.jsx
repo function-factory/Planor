@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { HomeTab, CalendarTab, StudyTab, WorkTab, SettingsTab, Toast, useToast } from './components/Tabs';
+import { HomeTab, CalendarTab, StudyTab, WorkTab, SettingsTab, Toast, useToast, ModalSheet } from './components/Tabs';
+import MusicWidget from './components/MusicWidget';
 import './index.css';
 
 const TABS = [
@@ -45,6 +46,8 @@ function Sidebar({ activeTab, setActiveTab, darkMode, setDarkMode, now }) {
         ))}
       </nav>
 
+      <MusicWidget />
+
       <div className="sidebar-bottom">
         <button className="sidebar-icon-btn" onClick={() => setDarkMode(d => !d)} title="다크 모드 토글">
           {darkMode ? '☀️' : '🌙'}
@@ -57,6 +60,7 @@ function Sidebar({ activeTab, setActiveTab, darkMode, setDarkMode, now }) {
 // ── Main App ──────────────────────────────────────────────
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
+  const [musicOpen, setMusicOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     try { return localStorage.getItem('planor-dark') === 'true'; } catch { return false; }
   });
@@ -149,6 +153,16 @@ export default function App() {
       </nav>
 
       <Toast msg={toastMsg} />
+
+      {/* Mobile Floating Music Player button */}
+      <div className="mobile-only floating-music-btn" onClick={() => setMusicOpen(true)} title="뮤직 플레이어 열기">
+        🎵
+      </div>
+
+      {/* Mobile Music Player Modal Sheet */}
+      <ModalSheet open={musicOpen} onClose={() => setMusicOpen(false)} title="뮤직 플레이어">
+        <MusicWidget isMobile={true} />
+      </ModalSheet>
     </div>
   );
 }

@@ -443,20 +443,21 @@ export function StudyTab({ onSessionSaved }) {
   const [subjects, setSubjects] = useLS('planor-v2-subjects', SUBJECTS_DEFAULT);
 
   // Active session state
-  const [phase, setPhase] = useState('idle'); // idle | study | rest | done
-  const [studyElapsed, setStudyElapsed] = useState(0);
-  const [restElapsed, setRestElapsed] = useState(0);
-  const [running, setRunning] = useState(false);
-  const intervalRef = useRef(null);
+  const [phase, setPhase] = useLS('planor-v2-study-phase', 'idle'); // idle | study | rest | done
+  const [studyElapsed, setStudyElapsed] = useLS('planor-v2-study-study-elapsed', 0);
+  const [restElapsed, setRestElapsed] = useLS('planor-v2-study-rest-elapsed', 0);
+  const [running, setRunning] = useLS('planor-v2-study-running', false);
+  const [timerStart, setTimerStart] = useLS('planor-v2-study-timer-start', null);
+  const [sessionStart, setSessionStart] = useLS('planor-v2-study-session-start', null);
+  const [tick, setTick] = useState(0);
 
   // Form values
-  const [selSubject, setSelSubject] = useState('수학');
+  const [selSubject, setSelSubject] = useLS('planor-v2-study-sel-subject', '수학');
   const [newSubject, setNewSubject] = useState('');
-  const [customMin, setCustomMin] = useState(30);
-  const [place, setPlace] = useState('');
-  const [focus, setFocus] = useState(3);
-  const [memo, setMemo] = useState('');
-  const [sessionStart, setSessionStart] = useState(null);
+  const [customMin, setCustomMin] = useLS('planor-v2-study-custom-min', 30);
+  const [place, setPlace] = useLS('planor-v2-study-place', '');
+  const [focus, setFocus] = useLS('planor-v2-study-focus', 3);
+  const [memo, setMemo] = useLS('planor-v2-study-memo', '');
 
   const [configOpen, setConfigOpen] = useState(false);
   const [subjectOpen, setSubjectOpen] = useState(false);
@@ -470,50 +471,86 @@ export function StudyTab({ onSessionSaved }) {
   const timerDuration = timerMode === 'pomodoro' ? POMO_STUDY : timerMode === 'custom' ? CUSTOM_DUR : null;
   const restDuration = timerMode === 'pomodoro' ? POMO_REST : null;
 
-  const studyProgress = timerDuration ? Math.min(studyElapsed / timerDuration, 1) : null;
-  const restProgress = restDuration ? Math.min(restElapsed / restDuration, 1) : null;
+  const activeStudyElapsed = phase === 'study' && running && timerStart ? studyElapsed + Math.floor((Date.now() - timerStart) / 1000) : studyElapsed;
+  const activeRestElapsed = phase === 'rest' && running && timerStart ? restElapsed + Math.floor((Date.now() - timerStart) / 1000) : restElapsed;
 
+  const studyProgress = timerDuration ? Math.min(activeStudyElapsed / timerDuration, 1) : null;
+  const restProgress = restDuration ? Math.min(activeRestElapsed / restDuration, 1) : null;
+
+  // Tick effect
   useEffect(() => {
-    if (running) {
-      intervalRef.current = setInterval(() => {
-        if (phase === 'study') {
-          setStudyElapsed(e => {
-            const next = e + 1;
-            if (timerDuration && next >= timerDuration) {
-              // auto switch to rest
-              setPhase('rest');
-              setRunning(timerMode === 'pomodoro');
-            }
-            return next;
-          });
-        } else if (phase === 'rest') {
-          setRestElapsed(e => {
-            const next = e + 1;
-            if (restDuration && next >= restDuration) {
-              setRunning(false);
-              setPhase('done');
-            }
-            return next;
-          });
-        }
+    let t = null;
+    if (running && phase !== 'idle' && phase !== 'done') {
+      t = setInterval(() => {
+        setTick(tk => tk + 1);
       }, 1000);
     }
-    return () => clearInterval(intervalRef.current);
-  }, [running, phase, timerDuration, restDuration, timerMode]);
+    return () => { if (t) clearInterval(t); };
+  }, [running, phase]);
+
+  // Pomodoro and custom duration transition logic
+  useEffect(() => {
+    if (!running || phase === 'idle' || phase === 'done') return;
+
+    const curStudy = phase === 'study' && timerStart ? studyElapsed + Math.floor((Date.now() - timerStart) / 1000) : studyElapsed;
+    const curRest = phase === 'rest' && timerStart ? restElapsed + Math.floor((Date.now() - timerStart) / 1000) : restElapsed;
+
+    if (phase === 'study' && timerDuration && curStudy >= timerDuration) {
+      const remainingTime = timerDuration - studyElapsed;
+      const finishTime = timerStart + remainingTime * 1000;
+      setStudyElapsed(timerDuration);
+      setPhase('rest');
+      if (timerMode === 'pomodoro') {
+        setRunning(true);
+        setTimerStart(finishTime);
+        setRestElapsed(0);
+      } else {
+        setRunning(false);
+        setTimerStart(null);
+      }
+    } else if (phase === 'rest' && restDuration && curRest >= restDuration) {
+      setRestElapsed(restDuration);
+      setRunning(false);
+      setTimerStart(null);
+      setPhase('done');
+    }
+  }, [tick, running, phase, timerDuration, restDuration, timerMode, timerStart, studyElapsed, restElapsed, setStudyElapsed, setPhase, setRunning, setTimerStart, setRestElapsed]);
 
   function startStudy() {
     setPhase('study');
     setStudyElapsed(0);
     setRestElapsed(0);
     setRunning(true);
+    setTimerStart(Date.now());
     setSessionStart(Date.now());
   }
 
-  function togglePause() { setRunning(r => !r); }
+  function togglePause() {
+    if (running) {
+      // Pause
+      const activeSegment = Math.floor((Date.now() - timerStart) / 1000);
+      if (phase === 'study') {
+        setStudyElapsed(studyElapsed + activeSegment);
+      } else if (phase === 'rest') {
+        setRestElapsed(restElapsed + activeSegment);
+      }
+      setRunning(false);
+      setTimerStart(null);
+    } else {
+      // Resume
+      setRunning(true);
+      setTimerStart(Date.now());
+    }
+  }
 
   function switchToRest() {
+    if (phase === 'study' && running && timerStart) {
+      const activeSegment = Math.floor((Date.now() - timerStart) / 1000);
+      setStudyElapsed(studyElapsed + activeSegment);
+    }
     setPhase('rest');
     setRunning(true);
+    setTimerStart(Date.now());
   }
 
   function saveSession() {
@@ -523,8 +560,8 @@ export function StudyTab({ onSessionSaved }) {
       date: now.toLocaleDateString('sv'),
       startEpoch: sessionStart,
       subject: fields.includes('subject') ? selSubject : undefined,
-      studyTime: studyElapsed,
-      restTime: fields.includes('restTime') ? restElapsed : 0,
+      studyTime: activeStudyElapsed,
+      restTime: fields.includes('restTime') ? activeRestElapsed : 0,
       place: fields.includes('place') ? place : undefined,
       focus: fields.includes('focus') ? focus : undefined,
       memo: fields.includes('memo') ? memo : undefined,
@@ -536,6 +573,8 @@ export function StudyTab({ onSessionSaved }) {
     setRunning(false);
     setStudyElapsed(0);
     setRestElapsed(0);
+    setTimerStart(null);
+    setSessionStart(null);
     setMemo('');
     showToast(`✅ ${fmtHM(session.studyTime)} 세션 저장 완료!`);
   }
@@ -545,6 +584,8 @@ export function StudyTab({ onSessionSaved }) {
     setRunning(false);
     setStudyElapsed(0);
     setRestElapsed(0);
+    setTimerStart(null);
+    setSessionStart(null);
   }
 
   function deleteSession(id) {
@@ -664,7 +705,7 @@ export function StudyTab({ onSessionSaved }) {
                   {phase === 'rest' ? '휴식 중' : '집중 중'}
                 </div>
                 <div className="study-timer-big" style={{ fontSize: 36 }}>
-                  {fmtSec(phase === 'rest' ? restElapsed : studyElapsed)}
+                  {fmtSec(phase === 'rest' ? activeRestElapsed : activeStudyElapsed)}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
                   {phase === 'rest'
@@ -680,11 +721,11 @@ export function StudyTab({ onSessionSaved }) {
                 {phase === 'idle' ? '준비' : phase === 'study' ? '⏱ 집중 중' : phase === 'rest' ? '😴 휴식 중' : '✅ 세션 완료'}
               </div>
               <div className="study-timer-big">
-                {phase === 'idle' ? '00:00' : phase === 'rest' ? fmtSec(restElapsed) : fmtSec(studyElapsed)}
+                {phase === 'idle' ? '00:00' : phase === 'rest' ? fmtSec(activeRestElapsed) : fmtSec(activeStudyElapsed)}
               </div>
               {phase === 'study' && (
                 <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
-                  총 공부: {fmtHM(studyElapsed)}
+                  총 공부: {fmtHM(activeStudyElapsed)}
                 </div>
               )}
             </div>
@@ -714,7 +755,7 @@ export function StudyTab({ onSessionSaved }) {
           </div>
 
           {/* If study phase, show save button too */}
-          {(phase === 'study' || phase === 'rest') && studyElapsed > 0 && (
+          {(phase === 'study' || phase === 'rest') && activeStudyElapsed > 0 && (
             <button className="btn btn-secondary btn-full" style={{ marginTop: 8 }} onClick={saveSession}>
               💾 지금 저장하기
             </button>
