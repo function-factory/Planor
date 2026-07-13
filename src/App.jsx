@@ -1,22 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { HomeTab, CalendarTab, StudyTab, WorkTab, SettingsTab, Toast, useToast, ModalSheet } from './components/Tabs';
 import MusicWidget from './components/MusicWidget';
+import ThemeSelector from '././components/ThemeSelector';
+import ClockWidget from '././components/ClockWidget';
+import StudentWidgets from '././components/StudentWidgets';
+import OfficeWidgets from '././components/OfficeWidgets';
+import HierarchicalPlanner from '././components/HierarchicalPlanner';
 import './index.css';
 
-const TABS = [
-  { id: 'home',     label: '홈',    icon: '🏠', sub: '오늘의 요약' },
-  { id: 'calendar', label: '일정',  icon: '📅', sub: '캘린더 & 일정' },
-  { id: 'study',    label: '순공',  icon: '⏱️', sub: '학습 타이머' },
-  { id: 'work',     label: '근무',  icon: '💼', sub: '출퇴근 관리' },
-  { id: 'settings', label: '설정',  icon: '⚙️', sub: '환경 설정' },
-];
+// Local storage helper
+function useLS(key, def) {
+  const [val, setVal] = useState(() => {
+    try {
+      const s = localStorage.getItem(key);
+      return s ? JSON.parse(s) : def;
+    } catch {
+      return def;
+    }
+  });
+  const update = (next) => {
+    try {
+      const v = typeof next === 'function' ? next(val) : next;
+      setVal(v);
+      localStorage.setItem(key, JSON.stringify(v));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  return [val, update];
+}
 
 const DAY_KR = ['일', '월', '화', '수', '목', '금', '토'];
 const MON_KR = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 function padZ(n) { return String(n).padStart(2, '0'); }
 
 // ── Sidebar (desktop only) ────────────────────────────────
-function Sidebar({ activeTab, setActiveTab, darkMode, setDarkMode, now }) {
+function Sidebar({ activeTab, setActiveTab, darkMode, setDarkMode, now, activeTabs }) {
   const h = padZ(now.getHours());
   const m = padZ(now.getMinutes());
   const s = padZ(now.getSeconds());
@@ -31,7 +50,7 @@ function Sidebar({ activeTab, setActiveTab, darkMode, setDarkMode, now }) {
       <div className="sidebar-date">{dateStr}</div>
 
       <nav className="sidebar-nav">
-        {TABS.map(tab => (
+        {activeTabs.map(tab => (
           <button
             key={tab.id}
             className={`sidebar-item ${activeTab === tab.id ? 'active' : ''}`}
@@ -64,6 +83,23 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(() => {
     try { return localStorage.getItem('planor-dark') === 'true'; } catch { return false; }
   });
+
+  // Global Themes & Modes State
+  const [theme, setTheme] = useLS('planor-v3-theme', 'modern-light');
+  const [font, setFont] = useLS('planor-v3-font', 'sans');
+  const [mode, setMode] = useLS('planor-v3-desk-mode', 'student');
+
+  // Dashboard shared states
+  const [timetable, setTimetable] = useLS('planor-v3-timetable', {});
+  const [dday, setDday] = useLS('planor-v3-dday', { name: '기말고사', target: '2026-07-10T09:00' });
+  const [flashcards, setFlashcards] = useLS('planor-v3-flashcards', []);
+
+  const [eisenhower, setEisenhower] = useLS('planor-v3-eisenhower', { iu: [], inu: [], niu: [], ninu: [] });
+  const [kanban, setKanban] = useLS('planor-v3-kanban', []);
+  const [memoText, setMemoText] = useLS('planor-v3-memo', '');
+
+  const [plans, setPlans] = useLS('planor-v3-plans', []);
+
   const [studySessions, setStudySessions] = useState(() => {
     try { const s = localStorage.getItem('planor-v2-study'); return s ? JSON.parse(s) : []; } catch { return []; }
   });
@@ -77,26 +113,87 @@ export default function App() {
     return () => clearInterval(t);
   }, []);
 
+  // Sync ClassName (Theme & Font & DarkMode)
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
+    const themeClass = `theme-${theme}`;
+    const fontClass = `font-class-${font}`;
+    document.documentElement.className = `${themeClass} ${fontClass} ${darkMode ? 'dark' : ''}`;
     try { localStorage.setItem('planor-dark', String(darkMode)); } catch {}
-  }, [darkMode]);
+  }, [theme, font, darkMode]);
 
   const [toastMsg, showToast] = useToast();
 
   const timeStr = `${padZ(now.getHours())}:${padZ(now.getMinutes())}:${padZ(now.getSeconds())}`;
   const dateStr = `${MON_KR[now.getMonth()]} ${now.getDate()}일 (${DAY_KR[now.getDay()]})`;
 
-  const activeTabData = TABS.find(t => t.id === activeTab);
+  // Dynamic Tabs Configuration
+  const activeTabs = [
+    { id: 'home',     label: '홈',    icon: '🏠', sub: '오늘의 요약' },
+    { id: 'calendar', label: '일정',  icon: '📅', sub: '캘린더 & 일정' },
+    mode === 'student'
+      ? { id: 'student', label: '학습', icon: '🎓', sub: '학습 대시보드' }
+      : { id: 'office',  label: '오피스', icon: '💼', sub: '근무 대시보드' },
+    { id: 'planner',  label: '계획',  icon: '🎯', sub: '트리 계획표' },
+    { id: 'settings', label: '설정',  icon: '⚙️', sub: '환경 설정' },
+  ];
+
+  const activeTabData = activeTabs.find(t => t.id === activeTab);
+
+  // Auto fallback active tab if mode toggled
+  useEffect(() => {
+    if (activeTab === 'student' && mode !== 'student') {
+      setActiveTab('office');
+    } else if (activeTab === 'office' && mode !== 'office') {
+      setActiveTab('student');
+    }
+  }, [mode, activeTab]);
 
   function renderTab() {
     switch (activeTab) {
-      case 'home':     return <HomeTab studySessions={studySessions} workRecords={workRecords} />;
-      case 'calendar': return <CalendarTab />;
-      case 'study':    return <StudyTab onSessionSaved={setSessions => setStudySessions(setSessions)} />;
-      case 'work':     return <WorkTab />;
-      case 'settings': return <SettingsTab darkMode={darkMode} setDarkMode={setDarkMode} showToast={showToast} />;
-      default:         return null;
+      case 'home':
+        return <HomeTab studySessions={studySessions} workRecords={workRecords} theme={theme} />;
+      case 'calendar':
+        return <CalendarTab />;
+      case 'student':
+        return (
+          <StudentWidgets 
+            timetable={timetable} 
+            setTimetable={setTimetable}
+            dday={dday}
+            setDday={setDday}
+            flashcards={flashcards}
+            setFlashcards={setFlashcards}
+          />
+        );
+      case 'office':
+        return (
+          <OfficeWidgets
+            eisenhower={eisenhower}
+            setEisenhower={setEisenhower}
+            kanban={kanban}
+            setKanban={setKanban}
+            memoText={memoText}
+            setMemoText={setMemoText}
+          />
+        );
+      case 'planner':
+        return <HierarchicalPlanner plans={plans} setPlans={setPlans} />;
+      case 'settings':
+        return (
+          <SettingsTab
+            darkMode={darkMode}
+            setDarkMode={setDarkMode}
+            showToast={showToast}
+            theme={theme}
+            setTheme={setTheme}
+            font={font}
+            setFont={setFont}
+            mode={mode}
+            setMode={setMode}
+          />
+        );
+      default:
+        return null;
     }
   }
 
@@ -109,6 +206,7 @@ export default function App() {
         darkMode={darkMode}
         setDarkMode={setDarkMode}
         now={now}
+        activeTabs={activeTabs}
       />
 
       {/* ── Mobile top header (hidden on desktop via CSS) ── */}
@@ -140,7 +238,7 @@ export default function App() {
 
       {/* ── Mobile bottom tab nav (hidden on desktop via CSS) ── */}
       <nav className="tab-nav">
-        {TABS.map(tab => (
+        {activeTabs.map(tab => (
           <button
             key={tab.id}
             className={`tab-item ${activeTab === tab.id ? 'active' : ''}`}

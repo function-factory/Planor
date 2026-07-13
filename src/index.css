@@ -117,7 +117,119 @@
   --duration: 0.22s;
 }
 
-/* Dark theme */
+/* ── 테마별 CSS 변수 오버라이드 ────────────────── */
+.theme-modern-light {
+  --bg:           #F4F6F9;
+  --bg-card:      #FFFFFF;
+  --bg-card2:     #F8FAFC;
+  --bg-input:     #F1F5F9;
+  --bg-sidebar:   #FFFFFF;
+  --text-primary:   #1E293B;
+  --text-secondary: #475569;
+  --text-muted:     #64748B;
+  --accent:         #2c78f6;
+  --border:         #e2e8f0;
+}
+.theme-modern-dark {
+  --bg:           #0f172a;
+  --bg-card:      #1e293b;
+  --bg-card2:     #0f172a;
+  --bg-input:     #334155;
+  --bg-sidebar:   #1e293b;
+  --text-primary:   #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted:     #64748b;
+  --accent:         #3b82f6;
+  --border:         #334155;
+}
+.theme-y2k {
+  --bg:           #020204;
+  --bg-card:      #0b0c10;
+  --bg-card2:     #1f2833;
+  --bg-input:     #0b0c10;
+  --bg-sidebar:   #0b0c10;
+  --text-primary:   #39ff14; /* Neon Green */
+  --text-secondary: #00ffcc; /* Cyan */
+  --text-muted:     #888888;
+  --accent:         #39ff14;
+  --border:         #39ff14;
+}
+.theme-retro {
+  --bg:           #ecdcb9;
+  --bg-card:      #fdf6e2;
+  --bg-card2:     #e6d5ac;
+  --bg-input:     #fdf6e2;
+  --bg-sidebar:   #fdf6e2;
+  --text-primary:   #4a3459;
+  --text-secondary: #82629b;
+  --text-muted:     #a890b5;
+  --accent:         #d2691e;
+  --border:         #4a3459;
+}
+.theme-spring {
+  --bg:           #fff1f2;
+  --bg-card:      #ffffff;
+  --bg-card2:     #ffe4e6;
+  --bg-input:     #ffe4e6;
+  --bg-sidebar:   #ffffff;
+  --text-primary:   #881337;
+  --text-secondary: #be123c;
+  --text-muted:     #fb7185;
+  --accent:         #ec4899;
+  --border:         #fecdd3;
+}
+.theme-summer {
+  --bg:           #e0f2fe;
+  --bg-card:      #ffffff;
+  --bg-card2:     #bae6fd;
+  --bg-input:     #bae6fd;
+  --bg-sidebar:   #ffffff;
+  --text-primary:   #0369a1;
+  --text-secondary: #0284c7;
+  --text-muted:     #38bdf8;
+  --accent:         #0ea5e9;
+  --border:         #bae6fd;
+}
+.theme-winter {
+  --bg:           #1e293b;
+  --bg-card:      #334155;
+  --bg-card2:     #1e293b;
+  --bg-input:     #475569;
+  --bg-sidebar:   #334155;
+  --text-primary:   #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted:     #94a3b8;
+  --accent:         #38bdf8;
+  --border:         #475569;
+}
+.theme-classic {
+  --bg:           #f4ecd8;
+  --bg-card:      #fdfaf2;
+  --bg-card2:     #eae0c8;
+  --bg-input:     #eae0c8;
+  --bg-sidebar:   #fdfaf2;
+  --text-primary:   #3e2723;
+  --text-secondary: #5d4037;
+  --text-muted:     #8d6e63;
+  --accent:         #8c6239;
+  --border:         #8c6239;
+}
+
+/* ── 폰트별 CSS 변수 오버라이드 ────────────────── */
+.font-class-sans, .font-class-sans button, .font-class-sans input, .font-class-sans select, .font-class-sans textarea {
+  font-family: 'Outfit', 'Pretendard', sans-serif !important;
+}
+.font-class-serif, .font-class-serif button, .font-class-serif input, .font-class-serif select, .font-class-serif textarea {
+  font-family: 'Lora', Georgia, serif !important;
+}
+.font-class-mono, .font-class-mono button, .font-class-mono input, .font-class-mono select, .font-class-mono textarea {
+  font-family: 'VT323', monospace !important;
+}
+.font-class-hand, .font-class-hand button, .font-class-hand input, .font-class-hand select, .font-class-hand textarea {
+  font-family: 'Gaegu', cursive !important;
+}
+
+/* Dark theme override compatibility */
 .dark {
   --bg:           #0f172a;
   --bg-card:      #1e293b;

@@ -170,7 +170,7 @@ export default function ClockWidget({ theme }) {
           stroke-width: 3;
           stroke-linecap: round;
           transition: stroke-dashoffset 0.1s linear;
-          filter: var(--glow-effect) ? drop-shadow(0 0 3px var(--accent)) : none;
+          filter: drop-shadow(0 0 3px var(--accent));
         }
 
         .clock-digits {

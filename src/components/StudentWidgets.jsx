@@ -66,6 +66,13 @@ export default function StudentWidgets({
   const [timeRemaining, setTimeRemaining] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
+    if (dday) {
+      setDdayName(dday.name || '기말고사');
+      setDdayTarget(dday.target || '2026-07-10T09:00');
+    }
+  }, [dday]);
+
+  useEffect(() => {
     const updateCountdown = () => {
       const targetDate = new Date(ddayTarget);
       const now = new Date();

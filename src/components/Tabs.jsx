@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ClockWidget from './ClockWidget';
+import ThemeSelector from './ThemeSelector';
 
 // ── Utility ──────────────────────────────────────────────
 const DAYS_KR = ['일', '월', '화', '수', '목', '금', '토'];
@@ -78,7 +80,7 @@ export function ModalSheet({ open, onClose, title, children }) {
 }
 
 // ── HOME TAB ─────────────────────────────────────────────
-export function HomeTab({ studySessions, workRecords }) {
+export function HomeTab({ studySessions, workRecords, theme }) {
   const now = useNow();
   const dayName = DAYS_KR[now.getDay()];
   const dateStr = `${now.getFullYear()}년 ${MONTHS_KR[now.getMonth()]} ${now.getDate()}일 (${dayName})`;
@@ -122,15 +124,7 @@ export function HomeTab({ studySessions, workRecords }) {
     <div className="fade-up">
       {/* Big Clock */}
       <div className="section" style={{ paddingTop: 16 }}>
-        <div className="card clock-display" style={{ padding: '28px 20px 20px' }}>
-          <div className="clock-time">
-            {timeStr}<span className="clock-sec">:{secStr}</span>
-          </div>
-          <div className="clock-date">{dateStr}</div>
-          <div style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
-            {greeting}
-          </div>
-        </div>
+        <ClockWidget theme={theme} />
       </div>
 
       {/* Today summary */}
@@ -1101,11 +1095,20 @@ export function WorkTab() {
 }
 
 // ── SETTINGS TAB ──────────────────────────────────────────
-export function SettingsTab({ darkMode, setDarkMode, showToast }) {
+export function SettingsTab({ 
+  darkMode, setDarkMode, showToast,
+  theme, setTheme,
+  font, setFont,
+  mode, setMode
+}) {
   const keys = [
     'planor-v2-events','planor-v2-study','planor-v2-work',
     'planor-v2-subjects','planor-v2-projects','planor-v2-study-fields',
     'planor-v2-timer-mode','planor-v2-clockin',
+    'planor-v3-theme', 'planor-v3-font', 'planor-v3-desk-mode',
+    'planor-v3-timetable', 'planor-v3-dday', 'planor-v3-flashcards',
+    'planor-v3-eisenhower', 'planor-v3-kanban', 'planor-v3-memo',
+    'planor-v3-plans'
   ];
 
   function clearCache() {
@@ -1119,7 +1122,19 @@ export function SettingsTab({ darkMode, setDarkMode, showToast }) {
 
   return (
     <div className="fade-up">
+      {/* Theme and Font selection */}
       <div className="section" style={{ paddingTop: 16 }}>
+        <ThemeSelector 
+          theme={theme} 
+          setTheme={setTheme} 
+          font={font} 
+          setFont={setFont} 
+          mode={mode} 
+          setMode={setMode} 
+        />
+      </div>
+
+      <div className="section">
         <div className="section-title">외관 <TossDivider /></div>
         <div className="card">
           <div className="setting-row">
